@@ -1,8 +1,10 @@
 import streamlit as st
 import pandas as pd
 
+
+# Pour éviter d'avoir les messages warning
 import warnings
-warnings.simplefilter(action='ignore', category=FutureWarning)
+warnings.filterwarnings('ignore')
     
 
 def rename(df):
@@ -132,67 +134,66 @@ def addline(df):
 @st.cache_data
 def preprocess_cyclisme(df):
 
+    df_work = df.copy()
     #drop des colonnes non utilisé
-    df.drop(columns=["Identifiant du compteur","Identifiant du site de comptage","Date d'installation du site de comptage","Identifiant technique compteur"], inplace=True)
-    df.drop(columns=["url_sites", "id_photo_1", "type_dimage","ID Photos","test_lien_vers_photos_du_site_de_comptage_"], inplace=True)
+    df_work.drop(columns=["Identifiant du compteur","Identifiant du site de comptage","Date d'installation du site de comptage","Identifiant technique compteur"], inplace=True)
+    df_work.drop(columns=["url_sites", "id_photo_1", "type_dimage","ID Photos","test_lien_vers_photos_du_site_de_comptage_"], inplace=True)
     
-    df.rename(columns={"Nom du compteur": "nom_compteur", 
+    df_work.rename(columns={"Nom du compteur": "nom_compteur", 
                        "Nom du site de comptage": "nom_site",
                        "Comptage horaire": "comptage_horaire",
                        "Date et heure de comptage": "date_heure_comptage",
                        "mois_annee_comptage":"mois_année"
                        }, inplace=True) 
     # traitement de la date en format datetime
-    df["date_heure_comptage"] = df["date_heure_comptage"].str[:18]
-    df["date_heure_comptage"] = pd.to_datetime(df["date_heure_comptage"])
+    df_work["date_heure_comptage"] = df_work["date_heure_comptage"].str[:18]
+    df_work["date_heure_comptage"] = pd.to_datetime(df_work["date_heure_comptage"])
 
-     # traitement de la date en format datetime
-    df = df.drop(df[(df['nom_compteur'].str.contains('27 quai de la Tournelle 27 quai de la Tournelle')) 
-                    & (df["date_heure_comptage"] == '2024-11-12 23:00:00') & (df['comptage_horaire'] == 0.0)].index)
+     # suppression du doublon de lignes
+    df_work = df_work.drop(df_work[(df_work['nom_compteur'].str.contains('27 quai de la Tournelle 27 quai de la Tournelle')) 
+                    & (df_work["date_heure_comptage"] == '2024-11-12 23:00:00') & (df_work['comptage_horaire'] == 0.0)].index)
 
     #ajout d'une photo
-    df.loc[df["nom_compteur"] == "35 boulevard de Ménilmontant NO-SE", ["Lien vers photo du site de comptage"]] = "https://drive.google.com/file/d/1GfPWIbU_Luv7tvOCJAk4AtciLjMEj8GA/view?usp=drive_link"
+    df_work.loc[df_work["nom_compteur"] == "35 boulevard de Ménilmontant NO-SE", ["Lien vers photo du site de comptage"]] = "https://drive.google.com/file/d/1GfPWIbU_Luv7tvOCJAk4AtciLjMEj8GA/view?usp=drive_link"
 
     #complétude des données manquantes et remplacement de certains noms
-    df = rename(df)
+    df_work = rename(df_work)
 
     #ajout de données pour gérer les mois/nom de jour et année /heure etc..
-    df["année"] = df["date_heure_comptage"].dt.year     # personne ne l'utilise pour le moment
-    df["num_mois"] = df["date_heure_comptage"].dt.month    # personne ne l'utilise pour le moment
-    df["num_jour_mois"] = df["date_heure_comptage"].dt.day
-    df['num_jour_semaine'] = df["date_heure_comptage"].dt.dayofweek #lundi = 0 
-
-    df["heure"] = df["date_heure_comptage"].dt.hour
-    #df["Mois"] = df["date_heure_comptage"].dt.month_name()
-    #df["Jour"] = df["date_heure_comptage"].dt.day_name()
-
-    df = addline(df)
+    df_work["année"] = df_work["date_heure_comptage"].dt.year     # personne ne l'utilise pour le moment
+    df_work["num_mois"] = df_work["date_heure_comptage"].dt.month    # personne ne l'utilise pour le moment
+    df_work["num_jour_mois"] = df_work["date_heure_comptage"].dt.day
+    df_work['num_jour_semaine'] = df_work["date_heure_comptage"].dt.dayofweek #lundi = 0 
+    df_work["heure"] = df_work["date_heure_comptage"].dt.hour
+    df_work["date"] = df_work["date_heure_comptage"].dt.date
+    df_work["date"] = pd.to_datetime(df_work["date"])
+    df_work = addline(df_work)
 
 
-    df[['latitude', 'longitude']] = df['Coordonnées géographiques'].str.split(',', expand=True)
-    df["latitude"] = pd.to_numeric(df["latitude"], errors="coerce")
-    df["longitude"] = pd.to_numeric(df["longitude"], errors="coerce")
-    df['latitude'] = df['latitude'].astype(float)
-    df['longitude'] = df['longitude'].astype(float)
+    df_work[['latitude', 'longitude']] = df_work['Coordonnées géographiques'].str.split(',', expand=True)
+    df_work["latitude"] = pd.to_numeric(df_work["latitude"], errors="coerce")
+    df_work["longitude"] = pd.to_numeric(df_work["longitude"], errors="coerce")
+    df_work['latitude'] = df_work['latitude'].astype(float)
+    df_work['longitude'] = df_work['longitude'].astype(float)
     #drop des colonnes non utilisé
-    df.drop(columns=["Coordonnées géographiques"], inplace=True)
+    df_work.drop(columns=["Coordonnées géographiques"], inplace=True)
 
-    df = df[df['année'].isin([2024, 2025]) & (df["nom_compteur"] != "10 avenue de la Grande Armée 10 avenue de la Grande Armée [Bike OUT]")
-            & (df["nom_compteur"] != "44 avenue des Champs Elysées SE-NO") ]
+    #voir decision de droper ces 3 compteurs car semble erroné ou trop incomplet
+    df_work = df_work[df_work['année'].isin([2024, 2025])]
     
-    df.sort_values(by=["date_heure_comptage","nom_compteur"], ascending=True, inplace=True)
-    df.reset_index(drop=True, inplace=True)
+    df_work.sort_values(by=["date_heure_comptage","nom_compteur"], ascending=True, inplace=True)
+    df_work.reset_index(drop=True, inplace=True)
 
-    #df = correctionCompteur0(df)
+    #df_work = correctionCompteur0(df_work)
 
-    return df
+    return df_work
 
 def preprocess_meteo(df):
 
 
     """Prétraitement des données : suppression des valeurs manquantes et sélection des colonnes numériques."""
     df_m = df.drop(columns='wind_speed_100m (km/h)', axis = 1)
-    df_m = df.drop(columns='wind_speed_100m (km/h)', axis = 1)
+    df_m = df_m.rename(columns={"is_day ()": "fait_jour","precipitation (mm)": "precipitation_mm","wind_speed_10m (km/h)": "wind_speed","temperature_2m (°C)": "temperature_2m"})
 
     # Convertir la colonne 'heure_gmt' en type datetime
     df_m['time'] = pd.to_datetime(df['time'])
@@ -208,11 +209,11 @@ def preprocess_meteo(df):
     df_m["time"] = pd.to_datetime(df_m["time"])
 
 
-    df_m['precipitation'] = pd.cut(x=df_m['precipitation (mm)'], bins=[0.0, 0.5, 3.5, 16.0],
+    df_m['precipitation'] = pd.cut(x=df_m['precipitation_mm'], bins=[0.0, 0.5, 3.5, 16.0],
                                    labels=['Pas de pluie/bruine', 'Pluie modérée', 'Fortes averses'], right=False)
-    df_m['wind'] = pd.cut(x=df_m['wind_speed_10m (km/h)'], bins=[0.0, 5, 19, 38, 43.0],
+    df_m['wind'] = pd.cut(x=df_m['wind_speed'], bins=[0.0, 5, 19, 38, 43.0],
                           labels=['Pas de vent', 'Vent modérée', 'vent', 'grand vent'], right=False)
-    df_m['temperature'] = pd.cut(x=df_m['temperature_2m (°C)'], bins=[-10, 0, 10, 20, 30, 36],
+    df_m['temperature'] = pd.cut(x=df_m['temperature_2m'], bins=[-10, 0, 10, 20, 30, 36],
                                  labels=['Gel','Froid', 'Tempéré', 'Chaud', 'Très chaud'], right=False)
     return df_m
 
@@ -220,9 +221,9 @@ def preprocess_vacancesferie(df_v, df_jf):
     """Prétraitement des données : fichier des jours fériés"""
     # creation d'une colonne en datatime
     #df_jf['time'] = pd.to_datetime(df_jf['date'], utc=True).dt.tz_convert(None)
-    df_jf['time'] = pd.to_datetime(df_jf['date'])
+    df_jf['date'] = pd.to_datetime(df_jf['date'])
     #on ne selectionne que les dates qui correspondent a notre jeu de données
-    df_jf = df_jf[(df_jf['time'] >= '2024-01-01') & (df_jf['time'] <= '2025-02-01')]
+    df_jf = df_jf[(df_jf['date'] >= '2024-01-01') & (df_jf['date'] <= '2025-02-01')]
     # Supprimer la colonne 'zone'
     df_jf = df_jf.drop(columns=['zone'])
 
@@ -244,17 +245,17 @@ def preprocess_vacancesferie(df_v, df_jf):
 
     # creation d'une colonne en datatime
     #df_v['time'] = pd.to_datetime(df_v['date'], utc=True).dt.tz_convert(None)
-    df_v['time'] = pd.to_datetime(df_v['date'])
+    df_v['date'] = pd.to_datetime(df_v['date'])
     #suppression des lignes hors période
     #df_v = df_v.dropna(axis = 0, how = 'all', subset = ['nom_vacances'])
-    df_filtered = df_v[(df_v['time'] >= '2024-01-01') & (df_v['time'] <= '2025-02-01')]
+    df_filtered = df_v[(df_v['date'] >= '2024-01-01') & (df_v['date'] <= '2025-02-01')]
 
 
     #creation d'un dataframe commun jour férier et congé
     df_jv = df_filtered
     new_rows = []
     for _, element in df_jf.iterrows():
-        if element['time'] not in df_jv['time'].values:
+        if element['date'] not in df_jv['date'].values:
             new_rows.append({
                 'date': element['date'],
                 'vacances_zone_a': True,
@@ -264,9 +265,9 @@ def preprocess_vacancesferie(df_v, df_jf):
                 'time': element['time']
                 })
         else:
-            df_jv.loc[df_jv['time'] == element['time'], ['vacances_zone_a', 'vacances_zone_b', 'vacances_zone_c']] = True
+            df_jv.loc[df_jv['date'] == element['date'], ['vacances_zone_a', 'vacances_zone_b', 'vacances_zone_c']] = True
             #df_jv.loc[df_jv['time'] == element['time'], 'nom_vacances'] = (df_jv.loc[df_jv['time'] == element['time'], 'nom_vacances'] + " / " + element['nom_jour_ferie'])
-            df_jv.loc[df_jv['time'] == element['time'], 'nom_vacances'] = (df_jv.loc[df_jv['time'] == element['time'], 'nom_vacances'].fillna('') + " / " + element['nom_jour_ferie'])
+            df_jv.loc[df_jv['date'] == element['date'], 'nom_vacances'] = (df_jv.loc[df_jv['date'] == element['date'], 'nom_vacances'].fillna('') + " / " + element['nom_jour_ferie'])
     # Ajouter les nouvelles lignes en une seule fois avec pd.concat()
     if new_rows:
         df_jv = pd.concat([df_jv, pd.DataFrame(new_rows)], ignore_index=True)
@@ -284,11 +285,18 @@ def preprocess_vacancesferie(df_v, df_jf):
 def preprocess_photo(df):
     """Prétraitement des données : suppression des valeurs manquantes et sélection des colonnes numériques."""
     df.drop(columns=['Unnamed: 0'], inplace=True)
+    df.drop(columns=['2sens'], inplace=True)
+    df.drop(columns=['Separe'], inplace=True)
     return df
 
 def corriger_comptage(dfenter):
-# Définir les dates de la période à corriger et de la période de référence
     df_result = dfenter.copy()
+    
+    df_result = df_result[(df_result["nom_compteur"] != "10 avenue de la Grande Armée 10 avenue de la Grande Armée [Bike OUT]")
+            & (df_result["nom_compteur"] != "44 avenue des Champs Elysées SE-NO") 
+            & (df_result["nom_compteur"] != "106 avenue Denfert Rochereau NE-SO")]
+
+    # Définir les dates de la période à corriger et de la période de référence
     periode_reference_debut = '2024-12-29 01:00'
     periode_reference_fin = '2024-12-30 06:00'
     periode_a_corriger_debut = '2025-01-05 01:00'
@@ -321,15 +329,10 @@ def corriger_comptage(dfenter):
 def correctionCompteur0(df):
     df_result = df.copy()
 
-    #add colomne neutralisé
-    df_result = neutralise(df_result)
+    df_result0NotNeutralise = searchCompteur0(df_result)
 
-    df_result.sort_values(by=["date_heure_comptage","nom_compteur"], ascending=True, inplace=True)
-    df_result.reset_index(drop=True, inplace=True)
-
-    df_result0NotNeutralise = searchCompteur0
     #list des compteur avec les preriode a 0
-    df_result = remplacerParMoyenne(df_result0NotNeutralise, dat_start, date_end)
+    df_result = remplacerParMoyenne(df_result0NotNeutralise, date_start, date_end)
 
     return df_result
 
@@ -365,25 +368,33 @@ def remplacerParMoyenne(df, df_0, start_date, end_date):
     return df_result
 
 def searchCompteur0 (df):
+
+    '''
+    Dans cette méthode on va chercher les itération de 20 lignes sur le meme compteur qui présente un compteur à 0 sans raison de neutralisation'''
+
+    #on va chercher 20 itérations d'affilées. IL faut donc s'assurer que le df est trié par com de compteur puis date_heure_comptage
+    df_result.sort_values(by=["nom_compteur","date_heure_comptage",], ascending=True, inplace=True)
+    df_result.reset_index(drop=True, inplace=True)
+
     df["zero_count"] = (df["Comptage horaire"] == 0).astype(int)
 
     # Fenêtre mobile de 20 heures sur chaque compteur
-    df["rolling_sum"] = df.groupby("Nom du compteur")["zero_count"].rolling(window=24, min_periods=24).sum().reset_index(level=0, drop=True)
+    df["rolling_sum"] = df.groupby("nom_compteur")["zero_count"].rolling(window=24, min_periods=24).sum().reset_index(level=0, drop=True)
 
     # Filtrer les lignes où il y a 24 heures consécutives de 0
     df_filtered = df[df["rolling_sum"] == 24]
 
     # Extraire le jour et l'heure de la colonne "Date et heure de comptage"
-    df_filtered["Jour"] = df_filtered["Date et heure de comptage"].dt.date
-    df_filtered['Heure'] = df_filtered['Date et heure de comptage'].dt.hour
+    #df_filtered["Jour"] = df_filtered["Date et heure de comptage"].dt.date
+    #df_filtered['Heure'] = df_filtered['Date et heure de comptage'].dt.hour
 
     # Sélectionner les colonnes pertinentes
-    df_result = df_filtered[["Nom du compteur", "Jour"]].drop_duplicates()
+    df_result = df_filtered[["nom_compteur", "date"]].drop_duplicates()
 
     # Trier les résultats par "Nom du compteur", "Jour", et "Heure"
-    df_result_sorted = df_result.sort_values(by=["Nom du compteur", "Jour"])
+    df_result_sorted = df_result.sort_values(by=["nom_compteur", "date"])
 
     # Afficher les résultats
-    print(df_result_sorted.info())
+    #print(df_result_sorted.info())
     #print(f"Unique compteur names: {df_result_sorted['Nom du compteur'].unique()}")
     #print(df_result_sorted)

@@ -10,6 +10,9 @@ from plotly.subplots import make_subplots
 import folium
 import plotly.express as px
 from sklearn.preprocessing import OrdinalEncoder
+# Pour éviter d'avoir les messages warning
+import warnings
+warnings.filterwarnings('ignore')
 
     
 def plot_heatmap(df):
@@ -19,15 +22,20 @@ def plot_heatmap(df):
     df['wind_encoded'] = encoder.fit_transform(df[['wind']])
     df['precipitation_encoded'] = encoder.fit_transform(df[['precipitation']])
 
+    df_work = df.copy()
+    df_work['vacances'] = df_work[['vacances_zone_a', 'vacances_zone_b', 'vacances_zone_c']].apply(lambda x: 1 if x.max() == 1 else 0, axis=1)
+
     columns_to_consider = ['comptage_horaire',
-                           'temperature_encoded', 
-                           # 'wind_encoded', 'precipitation_encoded',
-                           #'vacances_zone_a','vacances_zone_b','vacances_zone_c',
-                           'is_day ()',
-                           '1Sens', '2sens','Partage','Separe','heure','latitude','longitude']
+                           'precipitation_encoded',
+                           'heure',
+                           'num_jour_semaine',
+                           'vacances',
+                           'neutralise',
+                           'fait_jour',
+                           'Partage','1Sens','latitude','num_mois']
 
     # Calculer la matrice de corrélation en utilisant les colonnes sélectionnées
-    corr_matrix = df[columns_to_consider].corr()
+    corr_matrix = df_work[columns_to_consider].corr()
 
 
     """Affiche une heatmap de corrélation."""
@@ -169,11 +177,11 @@ def go_bar_meteo(df):
 
 def sns_scatter_meteo(df):
     df3 = df[df["nom_compteur"] == "Totem 73 boulevard de Sébastopol S-N"]
-    df2 = df3[df3['is_day ()'] == 1][['comptage_horaire', 'temperature_2m (°C)', 'wind_speed_10m (km/h)', 'precipitation']].dropna()
+    df2 = df3[df3['fait_jour'] == 1][['comptage_horaire', 'temperature_2m', 'wind_speed', 'precipitation']].dropna()
     df2 = df2[df2['comptage_horaire'] >= 500]
 
     fig = plt.figure(figsize=(20, 10))
-    scatter = sns.scatterplot(data=df2, x='temperature_2m (°C)', y='wind_speed_10m (km/h)',  hue='comptage_horaire', size='comptage_horaire', sizes=(50, 200),
+    scatter = sns.scatterplot(data=df2, x='temperature_2m', y='wind_speed',  hue='comptage_horaire', size='comptage_horaire', sizes=(50, 200),
                     palette='coolwarm', style='precipitation', markers=['o', 's', 'D'], alpha=0.8)
     plt.title("Nombre de passages de vélos selon la météo")
     plt.xlabel("Température (°C)")
@@ -212,10 +220,10 @@ def dayNight(df):   # a corriger
 
     # Filtrer les données en fonction de 'is_day'
     all_hours = pd.DataFrame({'heure': range(24)})
-    df_day = df.loc[df['is_day ()'] == 1]  # Données pour le jour (is_day = 1)
+    df_day = df.loc[df['fait_jour'] == 1]  # Données pour le jour (is_day = 1)
     #df_day['time'] = pd.to_datetime(df_day['date_heure_comptage'], utc=True).dt.tz_convert(None)
 
-    df_night = df.loc[df['is_day ()'] == 0]  # Données pour la nuit (is_day = 0)
+    df_night = df.loc[df['fait_jour'] == 0]  # Données pour la nuit (is_day = 0)
     #df_night['time'] = pd.to_datetime(df_night['date_heure_comptage'], utc=True).dt.tz_convert(None)
 
 
@@ -305,12 +313,12 @@ def generate_folium_map(df,map_filename):
 
 def boxplotTemperature(df):
     df3 = df[df["nom_compteur"]=="Totem 73 boulevard de Sébastopol S-N"]
-    df2 = df3[['comptage_horaire', 'date_heure_comptage', 'temperature_2m (°C)']].copy()
+    df2 = df3[['comptage_horaire', 'date_heure_comptage', 'temperature_2m']].copy()
     #df2['date_heure_comptage'] = pd.to_datetime(df2['date_heure_comptage'], errors='coerce')
     #df2['heure'] = df2['].dt.hour']
     bins = [-20, 0, 5, 10, 15, 20, 25, 30, 35, 60]
     labels = ["<0°C", "0-5°C", "5-10°C", "10-15°C", "15-20°C", "20-25°C", "25-30°C", "30-35°C", ">35°C"]
-    df2.loc[:, 'Température Catégorie'] = pd.cut(df2['temperature_2m (°C)'], bins=bins, labels=labels)
+    df2.loc[:, 'Température Catégorie'] = pd.cut(df2['temperature_2m'], bins=bins, labels=labels)
 
     plt.figure(figsize=(10, 6))
     sns.boxplot(data=df2, x='Température Catégorie', y='comptage_horaire', palette='coolwarm', hue='Température Catégorie')
@@ -323,12 +331,12 @@ def boxplotTemperature(df):
 def boxplotVent(df):
     # Code boxplot Trafic vélo selon la vitesse du vent
     df3 = df[df["nom_compteur"]=="Totem 73 boulevard de Sébastopol S-N"]
-    df2 = df3[['comptage_horaire', 'date_heure_comptage', 'wind_speed_10m (km/h)']].copy()
+    df2 = df3[['comptage_horaire', 'date_heure_comptage', 'wind_speed']].copy()
     #df2['date_heure_comptage'] = pd.to_datetime(df2['date_heure_comptage'], errors='coerce')
     bins = [0, 5, 10, 15, 20, 25, 30, 40, 50]
     labels = ["0-5 km/h", "5-10 km/h", "10-15 km/h", "15-20 km/h", "20-25 km/h","25-30 km/h", "30-40 km/h", "40-50 km/h"]
 
-    df2.loc[:, 'Vent Catégorie'] = pd.cut(df2['wind_speed_10m (km/h)'], bins=bins, labels=labels)
+    df2.loc[:, 'Vent Catégorie'] = pd.cut(df2['wind_speed'], bins=bins, labels=labels)
 
     plt.figure(figsize=(10,6))
     sns.boxplot(data=df2, x='Vent Catégorie', y='comptage_horaire', palette='coolwarm', hue='Vent Catégorie')
@@ -456,7 +464,8 @@ def plot_avg_mensuel(df, rue):
         compteurs_specifiques = [
             "10 avenue de la Grande Armée SE-NO", 
             "7 avenue de la Grande Armée NO-SE",
-            "10 avenue de la Grande Armée 10 avenue de la Grande Armée [Bike IN]"]
+            "10 avenue de la Grande Armée 10 avenue de la Grande Armée [Bike IN]",
+            "10 avenue de la Grande Armée 10 avenue de la Grande Armée [Bike OUT]"]
         
     elif rue=="all":
         compteurs_specifiques = df_work["Nom du compteur"].unique()
@@ -486,6 +495,7 @@ def plot_avg_mensuel(df, rue):
 def nbLigne_compteur(df):
 
     df_work = df.copy()
+
     df_work["Date et heure de comptage"] = df_work["Date et heure de comptage"].str[:18]
     df_work["Date et heure de comptage"] = pd.to_datetime(df_work["Date et heure de comptage"])
 
@@ -493,6 +503,10 @@ def nbLigne_compteur(df):
     start_date = pd.to_datetime('2024-01-01')
     end_date = pd.to_datetime('2025-02-01')
     df_filtered = df_work[(df_work['Date et heure de comptage'] >= start_date) & (df_work['Date et heure de comptage'] <= end_date)]
+
+    #compter déjà traité
+    df_filtered = df_filtered[(df_filtered['Nom du compteur'] !="7 avenue de la Grande Armée NO-SE") & (df_filtered['Nom du compteur'] !="10 avenue de la Grande Armée 10 avenue de la Grande Armée [Bike IN]") 
+                      & (df_filtered['Nom du compteur'] !="10 avenue de la Grande Armée") & (df_filtered['Nom du compteur'] !="10 avenue de la Grande Armée 10 avenue de la Grande Armée [Bike UOT]") ]
 
     # On compte le nombre de lignes pour chaque compteur
     df_counts = df_filtered['Nom du compteur'].value_counts().reset_index()

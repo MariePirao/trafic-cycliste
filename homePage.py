@@ -6,24 +6,52 @@ import streamlit as st
 import utilsPython as utils # type: ignore
 import utilsPreprocess as preproc # type: ignore
 import utilsGraph as graph # type: ignore
+import modelisation as modelisation # type: ignore
 import streamlit.components.v1 as components
 #import folium
 from streamlit_folium import st_folium
 import pandas as pd
+# Pour éviter d'avoir les messages warning
+import warnings
+warnings.filterwarnings('ignore')
+
+file_path = "data/"
+
+# Personnalisationde la largeur de l'affichage
+st.markdown(
+    """
+    <style>
+        /* Largeur de la zone centrale */
+        .main {
+            max-width: 60% !important; 
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Pour les pages d'index (si besoin) */
+        .block-container {
+            max-width: 60% !important;  
+        }
+    </style>
+    """, unsafe_allow_html=True
+)
 
 
-uploaded_file = "data/comptage-velo-donnees-compteurs.csv"
-uploaded_file_meteo = "data/meteo-Paris-2024.csv"
-uploaded_file_vac = "data/vacances-scolaire.csv"
-uploaded_file_ferie = "data/jours_feries.csv"
-uploaded_file_photo = "data/detail_photo.csv"
+uploaded_file = "comptage-velo-donnees-compteurs.csv"
+uploaded_file_meteo = "meteo-Paris-2024.csv"
+uploaded_file_vac = "vacances-scolaire.csv"
+uploaded_file_ferie = "jours_feries.csv"
+uploaded_file_photo = "detail_photo.csv"
+uploaded_file_travaux = "detail_impact_rue.csv"
+
 
 # permet de charger le df avec le fichier compteurs
-df = utils.load_data(uploaded_file, ";",0) 
-df_m = utils.load_data(uploaded_file_meteo, ',', 2)	
-df_v = utils.load_data(uploaded_file_vac, ',', 0)
-df_f = utils.load_data(uploaded_file_ferie, ',', 0)
-df_p = utils.load_data(uploaded_file_photo, ',', 0)
+df = utils.load_data(file_path + uploaded_file, ";",0) 
+df_m = utils.load_data(file_path + uploaded_file_meteo, ',', 2)	
+df_v = utils.load_data(file_path + uploaded_file_vac, ',', 0)
+df_f = utils.load_data(file_path + uploaded_file_ferie, ',', 0)
+df_p = utils.load_data(file_path + uploaded_file_photo, ',', 0)
+df_ir = utils.load_data(file_path + uploaded_file_travaux, ';', 0)
   
 # Prétraitement des données 
 df_cleaned = preproc.preprocess_cyclisme(df)
@@ -32,10 +60,9 @@ df_vjf_cleaned = preproc.preprocess_vacancesferie(df_v,df_f)
 df_p_cleaned = preproc.preprocess_photo(df_p)
 
 
-df_merged = utils.merge(df_cleaned,df_m_cleaned,df_vjf_cleaned,df_p_cleaned)
+df_merged = utils.merge(df_cleaned,df_m_cleaned,df_vjf_cleaned,df_p_cleaned,df_ir)
 
 df_merged_cleaned = preproc.corriger_comptage(df_merged) 
-
 
 
 image_path = "image_Top.jpg"  
@@ -69,16 +96,19 @@ if page == pages[0] :
   st.markdown('<p style="font-size:12px; font-style:italic;">source : <a href="https://opendata.paris.fr/explore/dataset/comptage-velo-donnees-compteurs" target="_blank">https://opendata.paris.fr/explore/dataset/comptage-velo-donnees-compteurs</a></p>', unsafe_allow_html=True)
 
   if st.checkbox("Afficher les données externes") :
-    st.markdown(f'<p style="margin-left: 50px;margin-bottom: 0px;">🌤️Données météorologiques :  {uploaded_file_meteo}</p>', unsafe_allow_html=True)
+    st.markdown(f'<p style="margin-left: 50px;margin-bottom: 0px;">🌤️ Données météorologiques :  {uploaded_file_meteo}</p>', unsafe_allow_html=True)
     st.markdown('<p style="margin-left: 50px;font-size:12px; font-style:italic;">source : <a href="https://www.data.gouv.fr/fr/organizations/meteo-france/" target="_blank">https://www.data.gouv.fr/fr/organizations/meteo-france/</a></p>', unsafe_allow_html=True)
 
-    st.markdown(f'<p style="margin-left: 50px;margin-bottom: 0px;">🏖️Données vacances scolaires :  {uploaded_file_vac}</p>', unsafe_allow_html=True)
+    st.markdown(f'<p style="margin-left: 50px;margin-bottom: 0px;">🏖️ Données vacances scolaires :  {uploaded_file_vac}</p>', unsafe_allow_html=True)
     st.markdown('<p style="margin-left: 50px;font-size:12px; font-style:italic;">source : <a href="https://www.data.gouv.fr/fr/datasets/calendrier-scolaire/" target="_blank">https://www.data.gouv.fr/fr/datasets/calendrier-scolaire/</a></p>', unsafe_allow_html=True)
     
-    st.markdown(f'<p style="margin-left: 50px;margin-bottom: 0px;">🎌Données jours férié :  {uploaded_file_ferie}</p>', unsafe_allow_html=True)
+    st.markdown(f'<p style="margin-left: 50px;margin-bottom: 0px;">🎌 Données jours férié :  {uploaded_file_ferie}</p>', unsafe_allow_html=True)
     st.markdown('<p style="margin-left: 50px;font-size:12px; font-style:italic;">source : <a href="https://www.data.gouv.fr/fr/datasets/jours-feries-en-france/" target="_blank">https://www.data.gouv.fr/fr/datasets/jours-feries-en-france/</a></p>', unsafe_allow_html=True)
     
-    st.markdown(f'<p style="margin-left: 50px;margin-bottom: 0px;">📸Données detail photo :  {uploaded_file_photo}</p>', unsafe_allow_html=True)
+    st.markdown(f'<p style="margin-left: 50px;margin-bottom: 0px;">📸 Données detail photo :  {uploaded_file_photo}</p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-left: 50px;font-size:12px; font-style:italic;">source : effectué manuellement', unsafe_allow_html=True)
+        
+    st.markdown(f'<p style="margin-left: 50px;margin-bottom: 0px;">:🚧 Données detail travaux ou bloquage des JO :  {uploaded_file_travaux}</p>', unsafe_allow_html=True)
     st.markdown('<p style="margin-left: 50px;font-size:12px; font-style:italic;">source : effectué manuellement', unsafe_allow_html=True)
     
 #ce qui s'affiche si l 'option 1 de pages est sélectionné
@@ -106,21 +136,33 @@ if page == pages[1] :
  
     info_df = pd.DataFrame(info_dict)
     st.dataframe(info_df)
-    conclusion = '''
+    observation = '''
     La variable 'Nom du compteur' est toujours indiquée car le nombre de valeurs non nulles correspond à la taille du df : 913738<br>
     La variable 'Identifiant du site de comptage' est parfois nulle mais est dans un mauvais type. Nous verrons si cette donnée est interessante pour la suite de l'analyse<br>
     La variable 'Comptage horaire' est toujorus renseignée. Mais nous devrons étudier la valeur max car elle être très éloignée de la médiane.<br>
     La variable 'Date et heure comptage' est toujours indiquée mais devrait être dans un type Datetime(FR).<br>
     Les variables id_photo_1 et type_dimage n'ont chcune qu'une valeur et nan. Nous les supprimerons du df pour notre analyse.<br> '''
-    st.markdown(conclusion, unsafe_allow_html=True)
+    st.markdown(observation, unsafe_allow_html=True)
     if st.checkbox("Afficher les données externes") :
       st.subheader("Aperçu du jeu de donnée externes")
       st.write("Données météorologiques")
       st.dataframe(df_m.head())
+      observation = '''
+      Tout d'abord on peut s'apercevoir que la date est (comme l'indique le fichier source, en format GMT. Nous devrons la convertir en heure francaise pour rapprocher ces enregitrements de nos données de base<br>
+      Pour une meilleur lecture nous pourrons categoriser les données precipitation, temperature_2m et wind_speed_10m.<br>
+      Nous supprimerons la donnée concernant le vent a 100m de hauteur, qui ne peut pas avoir d'impact sur le trafic des vélo<br>
+      is_Day() indique s'il fait jour ou nuit (exemple à 19H du soir)<br>'''
+      st.markdown(observation, unsafe_allow_html=True)
       st.write("Données vacances scolaire")
       st.dataframe(df_v.head())
+      observation = '''
+      ????'''
+      st.markdown(observation, unsafe_allow_html=True)
       st.write("Données jours férié")
       st.dataframe(df_f.head())
+      observation = '''
+      ????'''
+      st.markdown(observation, unsafe_allow_html=True)
       st.write("Données detail photo")
       st.dataframe(df_p_cleaned.head())
 
@@ -137,8 +179,22 @@ if page == pages[1] :
     st.subheader("Analyse du compteur : Grande Armée")
     fig = graph.plot_avg_mensuel(df,"GrandeArmee")
     st.plotly_chart(fig)
-    conclusion = '''Nous pouvons déduire que la borne "7 avenue de la Grande Armée NO-SE" est correcte. Par contre la borne 10 avenue de la Grande Armée [Bike IN]
-    à l'air d'avoir remplacé la borne 10 avenue de la Grande Armée. Nous prenons la décision de liées les deux bornes.'''
+    conclusion = '''Nous pouvons déduire que la borne "7 avenue de la Grande Armée NO-SE" est correcte. <br>Par contre la borne 10 avenue de la Grande Armée [Bike IN]
+    à l'air d'avoir remplacé la borne 10 avenue de la Grande Armée. Nous prenons la décision de liées les deux bornes. <br>Pour la borne 10 avenue de la Grande Armée [Bike OUT], 
+    n'ayant remonté qu'un valeur, nous decidons de supprimer ce compteur'''
+    st.markdown(conclusion, unsafe_allow_html=True)
+    st.subheader("Compteurs ayant des lignes manquantes sur 2024/2025")
+    fig = graph.nbLigne_compteur(df)
+    st.plotly_chart(fig)
+    conclusion = '''Si nous avions un jeu de donées complet, nous aurions 9475 lignes par compteurs. Le graphique ci-dessus nous montre que c'est a peu de ligne près le cas, 
+    mais pas du tout vrai pour 7 compteurs. Mais si nous regardons les noms d'un peu plus près nous pouvons voir que ce sont tous des compteurs dont le nom est très proche d'un autre compteur
+    à la même adresse.  Nous décidons de renommer :<br>
+    Face au 48 quai de la marne NE-SO/SO-NE' en 'Face au 48 quai de la marne Face au 48 quai de la marne Vélos NE-SO/SO-NE<br>
+    Pont des Invalides N-S en Pont des Invalides (couloir bus) N-S<br>
+    27 quai de la Tournelle NO-SE/SE-NO en 27 quai de la Tournelle 27 quai de la Tournelle Vélos NO-SE/SE-NO<br>
+    Quai des Tuileries NO-SE/SE-NO en Quai des Tuileries Quai des Tuileries Vélos NO-SE/SE-NO<br>
+    Pour les autres compteurs nous allons proposer des alogorithmes pour ajouter les données.
+      '''
     st.markdown(conclusion, unsafe_allow_html=True)
     if st.checkbox("Afficher les NA") :
       st.subheader("Répartition des données manquantes sur les compteurs")
@@ -147,12 +203,7 @@ if page == pages[1] :
       conclusion = '''Nous observons que lorsqu'il manque un donnée sur une ligne du dataframe, génréralement il manque les 12 colonnes qui concerne le compteur.<br>
       En analysant les compteurs concernés, nous pouvons compléter les données manquantes à l'aide d'une ligne du compteur sur laquelle les données concernées sont indiquées.'''
       st.markdown(conclusion, unsafe_allow_html=True)
-      st.subheader("Compteurs ayant des lignes manquantes sur 2024/2025")
-      fig = graph.nbLigne_compteur(df)
-      st.plotly_chart(fig)
-      conclusion = '''Nous observons que si nous voulons des lignes pour toutes les heures entre janvier 2024 et fin janvier 2025. Nous devrions avoir 9475 lignes pour chaque compteur.
-      '''
-      st.markdown(conclusion, unsafe_allow_html=True)
+
 
   with ongletC:
     st.markdown("### Impact des JO sur le trafic cycliste")
@@ -290,30 +341,37 @@ if page == pages[2] :
     st.markdown("###Diagramme de correlation entre les vacances et le nombre de passages")
     fig = graph.boxplot_vacances1(df_merged_cleaned)
     st.pyplot(fig)
-    fig = graph.boxplot_vacances3(df_merged_cleaned)
-    st.pyplot(fig)
+    conclusionVacances = '''Vu le résultat de ce graph,nous pouvons clairement affirmer que la zone n'a pas d'influence.
+    nous allons donc merger les 3 colonnes pour la suite de l'analyse '''
+    st.markdown(conclusionVacances, unsafe_allow_html=True)
+    #fig = graph.boxplot_vacances3(df_merged_cleaned)
+    #st.pyplot(fig)
 
   
 
 #ce qui s'affiche si l 'option 2 de pages est sélectionné
 if page == pages[3] : 
   st.write("### Modélisation")
-  df_merged_cleaned = preproc.corriger_comptage(df_merged)  
+  #df_merged_cleaned = preproc.corriger_comptage(df_merged)  
   X_train, X_test, y_train, y_test = utils.modelisation(df_merged_cleaned)
+  #X_train, X_test, y_train, y_test = modelisation.modelisation(df_merged_cleaned)
  
   choix = ['LinearRegression', 'DecisionTreeRegressor','Random Forest Regressor']
   option = st.selectbox('Choix du modèle', choix)
   st.write('Le modèle choisi est :', option)
 
   clf = utils.prediction(option,X_train, y_train)
+  #clf = modelisation.prediction(option,X_train, y_train)
 
   display = st.radio('Que souhaitez-vous montrer ?', ('score (R²)', 'metrique MAE','Nuage de point de prédiction'))
   if display == 'score (R²)':
     trainScore,testScore = utils.scores(clf, display,X_train, X_test, y_train, y_test)
+    #trainScore,testScore = modelisation.scores(clf, display,X_train, X_test, y_train, y_test)
     st.write("Sur les données d'entrainement :",trainScore)
     st.write("Sur les données de test :",testScore)
   elif display == 'metrique MAE':
     trainMae,testMae = utils.scores(clf, display, X_train, X_test, y_train, y_test)
+    #trainMae,testMae = modelisation.scores(clf, display, X_train, X_test, y_train, y_test)
     st.write("Sur les données d'entrainement :",trainMae)
     st.write("Sur les données de test :",testMae)
   elif display == 'Nuage de point de prédiction':
