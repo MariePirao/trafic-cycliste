@@ -92,3 +92,15 @@ def merge(df_cleaned,df_m,df_jv, df_p, df_ir):
     df_result.reset_index(drop=True, inplace=True)
 
     return df_result
+
+
+def modelisation(df):
+
+    return 0, 0, 0, 0 
+
+def prediction(classifier,X_train, y_train ):
+
+    return 0
+
+def scores(clf, choice, X_train, X_test, y_train, y_test):
+    return 0

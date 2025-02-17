@@ -112,8 +112,6 @@ def addline(df):
 
     #on ajoute des colonne dans ce missing_hours_df pour permettre les gourpby  
     missing_hours_df["heure"] = missing_hours_df["date_heure_comptage"].dt.hour
-    #missing_hours_df["Mois"] = missing_hours_df["date_heure_comptage"].dt.month_name()
-    #missing_hours_df["Jour"] = missing_hours_df["date_heure_comptage"].dt.day_name()
 
     missing_hours_df["num_mois"] = missing_hours_df["date_heure_comptage"].dt.month
     missing_hours_df["num_jour_semaine"] = missing_hours_df["date_heure_comptage"].dt.dayofweek 
@@ -168,6 +166,8 @@ def preprocess_cyclisme(df):
     df_work["heure"] = df_work["date_heure_comptage"].dt.hour
     df_work["date"] = df_work["date_heure_comptage"].dt.date
     df_work["date"] = pd.to_datetime(df_work["date"])
+
+
     df_work = addline(df_work)
 
 
@@ -343,70 +343,73 @@ def correctionCompteur0(df):
     df_result0NotNeutralise = searchCompteur0(df_result)
 
     #list des compteur avec les preriode a 0
-    #df_result = remplacerParMoyenne(df_result0NotNeutralise, date_start, date_end)
+    df_result = remplacerParMoyenne(df_result, df_result0NotNeutralise)
 
     return df_result
 
-def remplacerParMoyenne(df, df_0, start_date, end_date):
+def remplacerParMoyenne(df, df_0):
 
-    #df2 = df.sample(100)
-    #df4 = df2
-    #df2["Comptage horaire"] = 0
-    #df6 = pd.concat([df2,df],axis=0)
-    #df6 = df.drop_duplicates(keep="first")
+    start_time = time.time()
+    print("je rentre dans remplacerParMoyenne :", time.ctime(start_time))
 
-    groupbytout = ["Num_Jour_Semaine", "Heure"]
-    moyenneGen = df.groupby(groupbytout)['Comptage horaire'].mean().reset_index()
-    moyenneGen = moyenneGen.rename(columns={"Comptage horaire": "Comptage horaire général moyen"})
+    groupbytout = ["num_jour_semaine", "heure"]
+    moyenneGen = df.groupby(groupbytout)['comptage_horaire'].mean().reset_index()
+    moyenneGen = moyenneGen.rename(columns={"comptage_horaire": "Comptage moyen H/J"})
 
-    df = pd.merge(df, moyenneGen, on=groupbytout, how="left")
+    df_0 = pd.merge(df_0, moyenneGen, on=groupbytout, how="left")
 
     #meme démarche mais pour les compteur a corriger
-    groupbycolproportion = ["Num_Jour_Semaine", "Heure", "Nom du compteur"]
-    moyenneGenCompteur = df_0.groupby(groupbycolproportion)['Comptage horaire'].mean().reset_index()
-    moyenneGenCompteur = moyenneGenCompteur.rename(columns={"Comptage horaire": "Comptage horaire général compteur"})
-    df4 = pd.merge(df4, moyenneGenCompteur, on=groupbycolproportion, how="left")
+    groupbycolproportion = ["num_jour_semaine", "heure", "nom_compteur"]
+    moyenneGenCompteur = df.groupby(groupbycolproportion)['comptage_horaire'].mean().reset_index()
+    moyenneGenCompteur = moyenneGenCompteur.rename(columns={"comptage_horaire": "Comptage moyen compteur H/J"})
     
-    groupbycolheure = ["Numero_Jour_Mois", "Numero_Mois", "Heure"] # reprendre simplement l'heure
-    moyenneGenHeure = df6.groupby(groupbycolheure)['Comptage horaire'].mean().reset_index()
-    moyenneGenHeure = moyenneGenHeure.rename(columns={"Comptage horaire": "Comptage horaire général heure"})
-    df4 = pd.merge(df4, moyenneGenHeure, on=groupbycolheure, how="left")
-    df.head()
-    df4["Proportion"] = (df4["Comptage horaire général compteur"]/df4["Comptage horaire général moyen"])*df4["Comptage horaire général heure"]
-    df4["diff_proportion"] = (df4["Comptage horaire"] - df4["Proportion"]).abs()
-    df5 = df4[["Identifiant du compteur","Nom du compteur","Comptage horaire","Date et heure de comptage","Proportion"]]
-    df5
+    df_0 = pd.merge(df_0, moyenneGenCompteur, on=groupbycolproportion, how="left")
+    
+    moyenneGenHeure = df.groupby("date_heure_comptage")['comptage_horaire'].mean().reset_index()
+    moyenneGenHeure = moyenneGenHeure.rename(columns={"comptage_horaire": "Comptage moyen par date/heure"})
+
+    df_0 = pd.merge(df_0, moyenneGenHeure, on="date_heure_comptage", how="left")
+    
+    df_0["compteur_final"] = round((df_0["Comptage moyen compteur H/J"]/df_0["Comptage moyen H/J"])*df_0["Comptage moyen par date/heure"])
+    df_0.drop(columns=["Comptage moyen compteur H/J", "Comptage moyen H/J", "Comptage moyen par date/heure","num_jour_semaine", "heure"], inplace=True)
+
+    df_result = pd.merge(df, df_0, on=["date_heure_comptage", "nom_compteur"], how="left")
+    df_result["compteur_final"] = df_result["compteur_final"].fillna(df_result["comptage_horaire"])
+    df_result["comptage_horaire"] = df_result["compteur_final"]
+    df_result = df_result.drop(columns=["compteur_final"])
+
+
+    start_time = time.time()
+    print("je soir de remplacerParMoyenne:", time.ctime(start_time))
+
     return df_result
 
 def searchCompteur0 (df):
+
+    start_time = time.time()
+    print("je rentre dans  searchCompteur0:", time.ctime(start_time))
+
     '''
     Dans cette méthode on va chercher les itération de 20 lignes sur le meme compteur qui présente un compteur à 0 sans raison de neutralisation'''
     
+
     df_work = df.copy()
      
     #on va chercher 20 itérations d'affilées. IL faut donc s'assurer que le df est trié par com de compteur puis date_heure_comptage
     df_work.sort_values(by=["nom_compteur","date_heure_comptage",], ascending=True, inplace=True)
     df_work.reset_index(drop=True, inplace=True)
 
+    df_work["comptage_horaire"]  = df_work["comptage_horaire"].apply(lambda x: 0 if x<1 else x)
+
     df_work["zero_count"] = ((df_work["comptage_horaire"] == 0) & (df_work["neutralise"] == 0)).astype(int)
     
-
-    # Fenêtre mobile de 20 heures sur chaque compteur
-    #df_work["rolling_sum"] = df_work.groupby("nom_compteur")["zero_count"].rolling(window=20, min_periods=20).sum().reset_index(level=0, drop=True)
-
-    # Filtrer les lignes où il y a 24 heures consécutives de 0
-    #df_filtered = df_work[df_work["rolling_sum"] == 20]
-
-    # Identifie les lignes de début et de fin pour chaque période d'au moins 20 heures consécutives
-    #df_work["group_id"] = (df_work["rolling_sum"] == 20).astype(int).cumsum()
-    
-    # Récupérer les périodes complètes de 20 heures
     df_result = []
     iteration = 0
     addLigne = {}
+    previousCompteur = ''
     
     for index, ligne in df_work.iterrows():
-        if (ligne["zero_count"] == 0):
+        if (ligne["zero_count"] == 0) or (ligne["nom_compteur"] != previousCompteur):
             if addLigne :
                 df_result.append(addLigne)
             iteration = 0
@@ -418,28 +421,28 @@ def searchCompteur0 (df):
             if (iteration >= 20):
                 dateEnd = ligne["date_heure_comptage"]
                 addLigne = {"nom_compteur": ligne["nom_compteur"], "dateStart": dateStart, "dateEnd": dateEnd}
+        previousCompteur =ligne["nom_compteur"]
                 
 
-    # Sélectionner les colonnes pertinentes
+    # transformer en dataframe
     df_result = pd.DataFrame(df_result)
-
     # Trier les résultats par "Nom du compteur", "Jour", et "Heure"
     df_result_sorted = df_result.sort_values(by=["nom_compteur", "dateStart", "dateEnd"])
 
-    filtered_df = df[(df['nom_compteur'] == "10 avenue de la Grande Armée SE-NO") &
-                 (df['date_heure_comptage'].dt.strftime('%Y-%m-%d') == '2024-12-30')]
-    # Sélectionner uniquement les colonnes souhaitées
-    filtered_df = filtered_df[['date_heure_comptage', 'nom_compteur', 'comptage_horaire']]
-    print(filtered_df)
-    print("Voici les résultats après avoir appliqué la fenêtre glissante et les filtres:")
-    print(df_result_sorted.head(20))
+    # Créer une liste pour stocker les résultats
+    expanded_data = []
+    # Pour chaque ligne du dataframe d'origine, générer toutes les heures entre dateStart et dateEnd
+    for _, row in df_result_sorted.iterrows():
+        hours_range = pd.date_range(start=row['dateStart'], end=row['dateEnd'], freq='H')  # Crée un range horaire
+        for hour in hours_range:
+            datetime = hour.to_pydatetime()
+            heure = datetime.hour
+            numJour = datetime.weekday()
+            expanded_data.append([row['nom_compteur'], hour,heure,numJour])
+    # Créer un nouveau dataframe avec les résultats
+    expanded_df = pd.DataFrame(expanded_data, columns=['nom_compteur', 'date_heure_comptage', "heure","num_jour_semaine"])
 
     start_time = time.time()
-    print("calcul Heure de début :", time.ctime(start_time))
+    print("je sors dans  searchCompteur0:", time.ctime(start_time))
 
-    return df_result_sorted
-
-    # Afficher les résultats
-    #print(df_result_sorted.info())
-    #print(f"Unique compteur names: {df_result_sorted['Nom du compteur'].unique()}")
-    #print(df_result_sorted)
+    return expanded_df
