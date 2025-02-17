@@ -23,7 +23,6 @@ def plot_heatmap(df):
     df['precipitation_encoded'] = encoder.fit_transform(df[['precipitation']])
 
     df_work = df.copy()
-    df_work['vacances'] = df_work[['vacances_zone_a', 'vacances_zone_b', 'vacances_zone_c']].apply(lambda x: 1 if x.max() == 1 else 0, axis=1)
 
     columns_to_consider = ['comptage_horaire',
                            'precipitation_encoded',

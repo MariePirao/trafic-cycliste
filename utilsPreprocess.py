@@ -1,3 +1,4 @@
+import time
 import streamlit as st
 import pandas as pd
 
@@ -289,6 +290,14 @@ def preprocess_photo(df):
     df.drop(columns=['Separe'], inplace=True)
     return df
 
+def correctionDataviz(df):
+    """Dernier traitement sur le dataframe avant la modélisation"""
+    df_work = df.copy()
+    #selon la recommandation concernant le graph sur les vacances nous allons utiliser qu'une colonne vacances
+    df_work['vacances'] = df_work[['vacances_zone_a', 'vacances_zone_b', 'vacances_zone_c']].apply(lambda x: 1 if x.max() == 1 else 0, axis=1)
+
+    return df_work
+
 def corriger_comptage(dfenter):
     df_result = dfenter.copy()
     
@@ -323,6 +332,8 @@ def corriger_comptage(dfenter):
 
     df_result = df_result[df_result["num_mois"] != '7']
 
+    df_result0NotNeutralise = correctionCompteur0(df_result)
+
     return df_result
 
 
@@ -332,7 +343,7 @@ def correctionCompteur0(df):
     df_result0NotNeutralise = searchCompteur0(df_result)
 
     #list des compteur avec les preriode a 0
-    df_result = remplacerParMoyenne(df_result0NotNeutralise, date_start, date_end)
+    #df_result = remplacerParMoyenne(df_result0NotNeutralise, date_start, date_end)
 
     return df_result
 
@@ -368,31 +379,65 @@ def remplacerParMoyenne(df, df_0, start_date, end_date):
     return df_result
 
 def searchCompteur0 (df):
-
     '''
     Dans cette méthode on va chercher les itération de 20 lignes sur le meme compteur qui présente un compteur à 0 sans raison de neutralisation'''
-
+    
+    df_work = df.copy()
+     
     #on va chercher 20 itérations d'affilées. IL faut donc s'assurer que le df est trié par com de compteur puis date_heure_comptage
-    df_result.sort_values(by=["nom_compteur","date_heure_comptage",], ascending=True, inplace=True)
-    df_result.reset_index(drop=True, inplace=True)
+    df_work.sort_values(by=["nom_compteur","date_heure_comptage",], ascending=True, inplace=True)
+    df_work.reset_index(drop=True, inplace=True)
 
-    df["zero_count"] = (df["Comptage horaire"] == 0).astype(int)
+    df_work["zero_count"] = ((df_work["comptage_horaire"] == 0) & (df_work["neutralise"] == 0)).astype(int)
+    
 
     # Fenêtre mobile de 20 heures sur chaque compteur
-    df["rolling_sum"] = df.groupby("nom_compteur")["zero_count"].rolling(window=24, min_periods=24).sum().reset_index(level=0, drop=True)
+    #df_work["rolling_sum"] = df_work.groupby("nom_compteur")["zero_count"].rolling(window=20, min_periods=20).sum().reset_index(level=0, drop=True)
 
     # Filtrer les lignes où il y a 24 heures consécutives de 0
-    df_filtered = df[df["rolling_sum"] == 24]
+    #df_filtered = df_work[df_work["rolling_sum"] == 20]
 
-    # Extraire le jour et l'heure de la colonne "Date et heure de comptage"
-    #df_filtered["Jour"] = df_filtered["Date et heure de comptage"].dt.date
-    #df_filtered['Heure'] = df_filtered['Date et heure de comptage'].dt.hour
+    # Identifie les lignes de début et de fin pour chaque période d'au moins 20 heures consécutives
+    #df_work["group_id"] = (df_work["rolling_sum"] == 20).astype(int).cumsum()
+    
+    # Récupérer les périodes complètes de 20 heures
+    df_result = []
+    iteration = 0
+    addLigne = {}
+    
+    for index, ligne in df_work.iterrows():
+        if (ligne["zero_count"] == 0):
+            if addLigne :
+                df_result.append(addLigne)
+            iteration = 0
+            addLigne = {}
+        else :
+            iteration += 1
+            if (iteration == 1):
+                dateStart = ligne["date_heure_comptage"]
+            if (iteration >= 20):
+                dateEnd = ligne["date_heure_comptage"]
+                addLigne = {"nom_compteur": ligne["nom_compteur"], "dateStart": dateStart, "dateEnd": dateEnd}
+                
 
     # Sélectionner les colonnes pertinentes
-    df_result = df_filtered[["nom_compteur", "date"]].drop_duplicates()
+    df_result = pd.DataFrame(df_result)
 
     # Trier les résultats par "Nom du compteur", "Jour", et "Heure"
-    df_result_sorted = df_result.sort_values(by=["nom_compteur", "date"])
+    df_result_sorted = df_result.sort_values(by=["nom_compteur", "dateStart", "dateEnd"])
+
+    filtered_df = df[(df['nom_compteur'] == "10 avenue de la Grande Armée SE-NO") &
+                 (df['date_heure_comptage'].dt.strftime('%Y-%m-%d') == '2024-12-30')]
+    # Sélectionner uniquement les colonnes souhaitées
+    filtered_df = filtered_df[['date_heure_comptage', 'nom_compteur', 'comptage_horaire']]
+    print(filtered_df)
+    print("Voici les résultats après avoir appliqué la fenêtre glissante et les filtres:")
+    print(df_result_sorted.head(20))
+
+    start_time = time.time()
+    print("calcul Heure de début :", time.ctime(start_time))
+
+    return df_result_sorted
 
     # Afficher les résultats
     #print(df_result_sorted.info())

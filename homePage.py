@@ -6,7 +6,7 @@ import streamlit as st
 import utilsPython as utils # type: ignore
 import utilsPreprocess as preproc # type: ignore
 import utilsGraph as graph # type: ignore
-import modelisation as modelisation # type: ignore
+#import modelisation as modelisation # type: ignore
 import streamlit.components.v1 as components
 #import folium
 from streamlit_folium import st_folium
@@ -64,6 +64,9 @@ df_merged = utils.merge(df_cleaned,df_m_cleaned,df_vjf_cleaned,df_p_cleaned,df_i
 
 df_merged_cleaned = preproc.corriger_comptage(df_merged) 
 
+#dernier netoyage lié a ce qu'on a vu dans la dataviz, ex concaténation des zone de vacance
+df_merged_cleaned_final = preproc.correctionDataviz(df_merged_cleaned) 
+
 
 image_path = "image_Top.jpg"  
 st.image(image_path, width=400) 
@@ -95,7 +98,7 @@ if page == pages[0] :
   st.markdown(f'<p style="margin-bottom: 0px;">Source à exploiter : {uploaded_file}</p>', unsafe_allow_html=True)
   st.markdown('<p style="font-size:12px; font-style:italic;">source : <a href="https://opendata.paris.fr/explore/dataset/comptage-velo-donnees-compteurs" target="_blank">https://opendata.paris.fr/explore/dataset/comptage-velo-donnees-compteurs</a></p>', unsafe_allow_html=True)
 
-  if st.checkbox("Afficher les données externes") :
+  if st.checkbox("Afficher les données externes", key='page1') : # sinon les chekbox de toute l'appli sont liées
     st.markdown(f'<p style="margin-left: 50px;margin-bottom: 0px;">🌤️ Données météorologiques :  {uploaded_file_meteo}</p>', unsafe_allow_html=True)
     st.markdown('<p style="margin-left: 50px;font-size:12px; font-style:italic;">source : <a href="https://www.data.gouv.fr/fr/organizations/meteo-france/" target="_blank">https://www.data.gouv.fr/fr/organizations/meteo-france/</a></p>', unsafe_allow_html=True)
 
@@ -143,7 +146,7 @@ if page == pages[1] :
     La variable 'Date et heure comptage' est toujours indiquée mais devrait être dans un type Datetime(FR).<br>
     Les variables id_photo_1 et type_dimage n'ont chcune qu'une valeur et nan. Nous les supprimerons du df pour notre analyse.<br> '''
     st.markdown(observation, unsafe_allow_html=True)
-    if st.checkbox("Afficher les données externes") :
+    if st.checkbox("Afficher les données externes", key='ongletA') :
       st.subheader("Aperçu du jeu de donnée externes")
       st.write("Données météorologiques")
       st.dataframe(df_m.head())
@@ -165,6 +168,14 @@ if page == pages[1] :
       st.markdown(observation, unsafe_allow_html=True)
       st.write("Données detail photo")
       st.dataframe(df_p_cleaned.head())
+      observation = '''
+      ????'''
+      st.markdown(observation, unsafe_allow_html=True)
+      st.write("Données blocage rue")
+      st.dataframe(df_ir.head())
+      observation = '''
+      ????'''
+      st.markdown(observation, unsafe_allow_html=True)
 
   # Ajouter du contenu à chaque onglet
   with ongletB:
@@ -196,7 +207,7 @@ if page == pages[1] :
     Pour les autres compteurs nous allons proposer des alogorithmes pour ajouter les données.
       '''
     st.markdown(conclusion, unsafe_allow_html=True)
-    if st.checkbox("Afficher les NA") :
+    if st.checkbox("Afficher les NA", key='ongletB') :
       st.subheader("Répartition des données manquantes sur les compteurs")
       fig = graph.heatmap_isna(df)
       st.pyplot(fig)
@@ -292,7 +303,7 @@ if page == pages[1] :
 
   with ongletD:
     st.markdown("### Dataframe final")
-    st.dataframe(df_merged_cleaned.head(5))
+    st.dataframe(df_merged_cleaned_final.head(5))
 
 #ce qui s'affiche si l 'option 2 de pages est sélectionné
 if page == pages[2] : 
@@ -329,7 +340,7 @@ if page == pages[2] :
     fig = graph.dayNight(df_merged)
     st.plotly_chart(fig)
     st.write('Diagramme de correlation entre les variables')
-    fig = graph.plot_heatmap(df_merged)
+    fig = graph.plot_heatmap(df_merged_cleaned_final)
     st.pyplot(fig)
     st.markdown("### Distribution du trafic vélo selon la température")
     fig = graph.boxplotTemperature(df_merged)
@@ -352,28 +363,29 @@ if page == pages[2] :
 #ce qui s'affiche si l 'option 2 de pages est sélectionné
 if page == pages[3] : 
   st.write("### Modélisation")
-  #df_merged_cleaned = preproc.corriger_comptage(df_merged)  
-  X_train, X_test, y_train, y_test = utils.modelisation(df_merged_cleaned)
+
+  X_train, X_test, y_train, y_test = utils.modelisation(df_merged_cleaned_final)
   #X_train, X_test, y_train, y_test = modelisation.modelisation(df_merged_cleaned)
  
-  choix = ['LinearRegression', 'DecisionTreeRegressor','Random Forest Regressor']
+  choix = ['', '','']
+  #choix = ['LinearRegression', 'DecisionTreeRegressor','Random Forest Regressor']
   option = st.selectbox('Choix du modèle', choix)
   st.write('Le modèle choisi est :', option)
 
   clf = utils.prediction(option,X_train, y_train)
   #clf = modelisation.prediction(option,X_train, y_train)
 
-  display = st.radio('Que souhaitez-vous montrer ?', ('score (R²)', 'metrique MAE','Nuage de point de prédiction'))
-  if display == 'score (R²)':
-    trainScore,testScore = utils.scores(clf, display,X_train, X_test, y_train, y_test)
+  #display = st.radio('Que souhaitez-vous montrer ?', ('score (R²)', 'metrique MAE','Nuage de point de prédiction'))
+  #if display == 'score (R²)':
+    #trainScore,testScore = utils.scores(clf, display,X_train, X_test, y_train, y_test)
     #trainScore,testScore = modelisation.scores(clf, display,X_train, X_test, y_train, y_test)
-    st.write("Sur les données d'entrainement :",trainScore)
-    st.write("Sur les données de test :",testScore)
-  elif display == 'metrique MAE':
-    trainMae,testMae = utils.scores(clf, display, X_train, X_test, y_train, y_test)
+    #st.write("Sur les données d'entrainement :",trainScore)
+    #st.write("Sur les données de test :",testScore)
+  #elif display == 'metrique MAE':
+    #trainMae,testMae = utils.scores(clf, display, X_train, X_test, y_train, y_test)
     #trainMae,testMae = modelisation.scores(clf, display, X_train, X_test, y_train, y_test)
-    st.write("Sur les données d'entrainement :",trainMae)
-    st.write("Sur les données de test :",testMae)
-  elif display == 'Nuage de point de prédiction':
-    fig = graph.pix_prediction(clf, X_test,y_test)
-    st.pyplot(fig)
+    #st.write("Sur les données d'entrainement :",trainMae)
+    #st.write("Sur les données de test :",testMae)
+  #elif display == 'Nuage de point de prédiction':
+    #fig = graph.pix_prediction(clf, X_test,y_test)
+    #st.pyplot(fig)
