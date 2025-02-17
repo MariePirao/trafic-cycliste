@@ -388,6 +388,8 @@ def searchCompteur0 (df):
     df_work.sort_values(by=["nom_compteur","date_heure_comptage",], ascending=True, inplace=True)
     df_work.reset_index(drop=True, inplace=True)
 
+    df_work["comptage_horaire"]  = df_work["comptage_horaire"].apply(lambda x: 0 if x<2 else x)
+
     df_work["zero_count"] = ((df_work["comptage_horaire"] == 0) & (df_work["neutralise"] == 0)).astype(int)
     
 
