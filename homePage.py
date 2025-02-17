@@ -134,7 +134,8 @@ if page == pages[1] :
       'Valeur unique': [df[col].nunique(dropna=False) for col in df.columns],
       'Min': [df[col].min() if col in int_columns else '' for col in df.columns],
       'Max': [df[col].max() if col in int_columns else '' for col in df.columns],
-      'Médiane': [df[col].median() if col in int_columns else '' for col in df.columns]
+      'Médiane': [df[col].median() if col in int_columns else '' for col in df.columns],
+      'Moyenne': [df[col].mean() if col in int_columns else '' for col in df.columns]
     }
  
     info_df = pd.DataFrame(info_dict)
@@ -375,7 +376,7 @@ if page == pages[3] :
   clf = utils.prediction(option,X_train, y_train)
   #clf = modelisation.prediction(option,X_train, y_train)
 
-  #display = st.radio('Que souhaitez-vous montrer ?', ('score (R²)', 'metrique MAE','Nuage de point de prédiction'))
+  display = st.radio('Que souhaitez-vous montrer ?', ('score (R²)', 'metrique MAE','Nuage de point de prédiction'))
   #if display == 'score (R²)':
     #trainScore,testScore = utils.scores(clf, display,X_train, X_test, y_train, y_test)
     #trainScore,testScore = modelisation.scores(clf, display,X_train, X_test, y_train, y_test)
