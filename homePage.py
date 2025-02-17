@@ -71,7 +71,7 @@ df_merged_cleaned_final = preproc.correctionDataviz(df_merged_cleaned)
 image_path = "image_Top.jpg"  
 st.image(image_path, width=400) 
 
-st.title("Trafic cycliste à PARIS")
+st.title("Trafic cycliste à PARIS - Nicolas")
 st.sidebar.title("Sommaire")
 pages=["Présentation du sujet","Exploration", "DataVizualization", "Modélisation"]
 page=st.sidebar.radio("Aller vers", pages)
