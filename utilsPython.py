@@ -115,7 +115,7 @@ def encode_cyclic(df, columns):
         df[f'{col}_cos'] = np.cos(2 * np.pi * df[col] / period[col])
     return df
 
-def modelisation(df):
+def modelisation(df, classifier):
 
     print("Modelisation pour XGB et Stacking :")
 
@@ -143,6 +143,41 @@ def modelisation(df):
             ('standard', StandardScaler(), numerical_features),
             ('passthrough', 'passthrough', dejanencode)])
     
+    if classifier == 'XGBRegressor':
+
+        start_time = time.time()
+        print("debut de l'entrainement de XGB :", time.ctime(start_time))
+        # Instancier le modèle XGB
+        xgb_params = {'n_estimators': 982,'max_depth': 15,'learning_rate': 0.010839297840803218,'colsample_bytree': 0.9763448531819173,
+        'subsample': 0.8004427030847461,'gamma': 2.1532845545117967,'reg_alpha': 6.080159216998929,'reg_lambda': 8.274555339627717,
+        'random_state': 42}
+        xgb_model = xgb.XGBRegressor(**xgb_params)
+        pipeline = Pipeline(steps=[
+            ('preprocessor', preprocessor),
+            ('regressor', xgb_model)])
+        pipeline.fit(X_train, y_train)
+        y_pred = pipeline.predict(X_test)
+        
+        start_time = time.time()
+
+
+    elif classifier == 'StackingRegressor':
+        start_time = time.time()
+        print("debut de l'entrainement de StackingRegressor :", time.ctime(start_time))
+        model_XGB = xgb.XGBRegressor(**xgb_params)
+        model_bag = BaggingRegressor(n_estimators=100,max_samples=0.7,max_features=0.7,random_state=123)
+        meta_model = LinearRegression(fit_intercept=False,copy_X=False)
+        stack_model = StackingRegressor(estimators=[('XGB', model_XGB), ('bagging', model_bag)],final_estimator=meta_model)
+        pipeline = Pipeline(steps=[
+            ('preprocessor', preprocessor),
+            ('regressor', stack_model)])
+        pipeline.fit(X_train, y_train)
+        y_pred = pipeline.predict(X_test)
+
+    print("fin de l'entrainement :", time.ctime(start_time))
+
+    return y_pred, y_test
+
     #start_time = time.time()
     #print("debut de l'entrainement de RF :", time.ctime(start_time))
     # Instancier le modèle RandomForest
@@ -158,24 +193,6 @@ def modelisation(df):
     #start_time = time.time()
     #print("fin de l'entrainement de RF :", time.ctime(start_time))
     #print(f"Mean Absolute Error (MAE) to random Forest : {maeRF}")
-
-    start_time = time.time()
-    print("debut de l'entrainement de XGB :", time.ctime(start_time))
-    # Instancier le modèle RandomForest
-    xgb_params = {'n_estimators': 982,'max_depth': 15,'learning_rate': 0.010839297840803218,'colsample_bytree': 0.9763448531819173,
-    'subsample': 0.8004427030847461,'gamma': 2.1532845545117967,'reg_alpha': 6.080159216998929,'reg_lambda': 8.274555339627717,
-    'random_state': 42}
-    xgb_model = xgb.XGBRegressor(**xgb_params)
-    pipeline = Pipeline(steps=[
-        ('preprocessor', preprocessor),
-        ('regressor', xgb_model)])
-    pipeline.fit(X_train, y_train)
-    y_pred_xgb = pipeline.predict(X_test)
-    maeXGB = mean_absolute_error(y_test, y_pred_xgb)
-    start_time = time.time()
-    print("fin de l'entrainement de XGB :", time.ctime(start_time))
-    print(f"Mean Absolute Error (MAE) avec XGB: {maeXGB}")
-
     #bagging_model = BaggingRegressor(n_estimators = 100, max_samples = 0.7, max_features = 0.7, 
     #                                 bootstrap=False,random_state=42)
     #pipeline = Pipeline(steps=[
@@ -189,24 +206,6 @@ def modelisation(df):
     #end_time = time.time()
     #print("Fin de l'entraînement de BaggingRegressor :", time.ctime(end_time))
     #print(f"Mean Absolute Error (MAE) avec BaggingRegressor : {maeBagging}")
-
-
-    start_time = time.time()
-    print("debut de l'entrainement de StackingRegressor :", time.ctime(start_time))
-    model_XGB = xgb.XGBRegressor(**xgb_params)
-    model_bag = BaggingRegressor(n_estimators=100,max_samples=0.7,max_features=0.7,random_state=123)
-    meta_model = LinearRegression(fit_intercept=False,copy_X=False)
-    stack_model = StackingRegressor(estimators=[('XGB', model_XGB), ('bagging', model_bag)],final_estimator=meta_model)
-
-    pipeline = Pipeline(steps=[
-        ('preprocessor', preprocessor),
-        ('regressor', stack_model)])
-    pipeline.fit(X_train, y_train)
-    y_pred_stack = pipeline.predict(X_test)
-    maeStack= mean_absolute_error(y_test, y_pred_stack)
-    start_time = time.time()
-    print("fin de l'entrainement de StackingRegressor :", time.ctime(start_time))
-    print(f"Mean Absolute Error (MAE) avec StackingRegressor: {maeStack}")
 
 #Les focntions suivantes sont pour les modelisation temporelle
 

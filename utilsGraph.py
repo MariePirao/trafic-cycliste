@@ -26,9 +26,9 @@ def plot_heatmap(df):
     df_work = df.copy()
 
     columns_to_consider = ['comptage_horaire','heure','num_jour_semaine','num_mois','fait_jour', 
-                           'weekend','vacances','neutralise','precipitation_encoded',
+                           'weekend','vacances','neutralise',
                            'Partage','1Sens','latitude','longitude',
-                           'temperature_encoded']
+                           'temperature_encoded','precipitation_encoded']
 
     # Calculer la matrice de corrélation en utilisant les colonnes sélectionnées
     corr_matrix = df_work[columns_to_consider].corr()

@@ -1,3 +1,4 @@
+from sklearn.metrics import mean_absolute_error
 import streamlit as st
 import utilsPython as utils # type: ignore
 import utilsPreprocess as preproc # type: ignore
@@ -301,7 +302,10 @@ if page == pages[1] :
     La valeur de 3070 est donc une valeur aberrante. Nous choisirons pour ce jour de prendre les mêmes valeurs que le dimanche précédent.'''
     st.markdown(abherrante1, unsafe_allow_html=True)
 
-    correct = '''Proposition de correction'''
+    correct = '''Proposition de correction : Nous allons reprendre les données d'un autre jour sur le meme compteur en respectant le jour de la smeaine et les heures : 
+    periode utilisée du 2024-12-29 01:00 au 2024-12-30 06:00
+    periode à corriger du 2025-01-05 01:00 au 2025-01-06 06:00'''
+
     st.markdown(correct, unsafe_allow_html=True)
     fig2 = graph.plot_abherrante(df_merged_cleaned)
     st.plotly_chart(fig2, key="graph_abherrante_2")
@@ -384,7 +388,8 @@ if page == pages[3] :
     option = st.selectbox('Choix du modèle', choix)
     st.write('Le modèle choisi est :', option)
     if option in ['XGBRegressor', 'StackingRegressor']:
-      utils.modelisation(df_merged_cleaned_final)
+      y_pred, y_test = utils.modelisation(df_merged_cleaned_final, option)
+      st.write("Sur les données de test :",mean_absolute_error(y_test, y_test))
     else:
       X_train, X_test, y_train, y_test = modelisation.modelisation(df_merged_cleaned_final,nom_compteur_selectionne)
       clf = modelisation.prediction(option,X_train, y_train)
