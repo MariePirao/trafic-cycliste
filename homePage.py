@@ -389,7 +389,8 @@ if page == pages[3] :
     st.write('Le modèle choisi est :', option)
     if option in ['XGBRegressor', 'StackingRegressor']:
       y_pred, y_test = modelisation.modelisation(df_merged_cleaned_final, option)
-      st.write("Sur les données de test :",mean_absolute_error(y_test, y_test))
+      mae = mean_absolute_error(y_pred, y_test)
+      st.write("MAE Sur les données de test :",mae)
     else:
       X_train, X_test, y_train, y_test = modelisation.modelisation1(df_merged_cleaned_final,nom_compteur_selectionne)
       clf = modelisation.prediction(option,X_train, y_train)

@@ -11,7 +11,7 @@ from sklearn.model_selection import RandomizedSearchCV, train_test_split
 from sklearn.ensemble import AdaBoostRegressor, BaggingRegressor, GradientBoostingRegressor, RandomForestRegressor, StackingRegressor
 from prophet import Prophet
 from sklearn.pipeline import Pipeline
-from xgboost import XGBRegressor as xgb
+from xgboost import XGBRegressor
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.preprocessing import MinMaxScaler, OrdinalEncoder
 import streamlit as st
@@ -137,14 +137,6 @@ def prediction(classifier,X_train, y_train):
         clf = DecisionTreeRegressor(random_state=42, min_samples_split = 5, max_features = None, max_depth=15)
         clf.fit(X_train, y_train)
         dump(clf, 'model_DTR.joblib')
-    elif classifier == 'GradientBoostingRegressor':
-      if os.path.exists('model_GBR.joblib'):
-         # Si le fichier existe, charger le modèle sauvegardé
-         clf = load('model_GBR.joblib')
-      else:
-        clf = GradientBoostingRegressor(n_estimators = 200, max_depth = 5, learning_rate = 0.1, random_state=123)
-        clf.fit(X_train, y_train)
-        dump(clf, 'model_GBR.joblib')
     elif classifier == 'BaggingRegressor':
       if os.path.exists('model_BR.joblib'):
          # Si le fichier existe, charger le modèle sauvegardé
@@ -153,14 +145,6 @@ def prediction(classifier,X_train, y_train):
         clf = BaggingRegressor(n_estimators = 100, max_samples = 0.7, max_features = 0.7, random_state=123)
         clf.fit(X_train, y_train)
         dump(clf, 'model_BR.joblib')
-    elif classifier == 'AdaBoostRegressor':
-      if os.path.exists('model_ABR.joblib'):
-         # Si le fichier existe, charger le modèle sauvegardé
-         clf = load('model_ABR.joblib')
-      else:
-        clf = AdaBoostRegressor(n_estimators = 50, loss = 'square', learning_rate = 0.01,random_state=123)
-        clf.fit(X_train, y_train)
-        dump(clf, 'model_ABR.joblib')
     #elif classifier == 'XGBRegressor':
     #  if os.path.exists('model_XGB.joblib'):
     #     # Si le fichier existe, charger le modèle sauvegardé
@@ -245,20 +229,17 @@ def modelisation(df, classifier):
         xgb_params = {'n_estimators': 982,'max_depth': 15,'learning_rate': 0.010839297840803218,'colsample_bytree': 0.9763448531819173,
         'subsample': 0.8004427030847461,'gamma': 2.1532845545117967,'reg_alpha': 6.080159216998929,'reg_lambda': 8.274555339627717,
         'random_state': 42}
-        xgb_model = xgb.XGBRegressor(**xgb_params)
+        xgb_model = XGBRegressor(**xgb_params)
         pipeline = Pipeline(steps=[
             ('preprocessor', preprocessor),
             ('regressor', xgb_model)])
         pipeline.fit(X_train, y_train)
         y_pred = pipeline.predict(X_test)
         
-        start_time = time.time()
-
-
     elif classifier == 'StackingRegressor':
         start_time = time.time()
         print("debut de l'entrainement de StackingRegressor :", time.ctime(start_time))
-        model_XGB = xgb.XGBRegressor(**xgb_params)
+        model_XGB = XGBRegressor(**xgb_params)
         model_bag = BaggingRegressor(n_estimators=100,max_samples=0.7,max_features=0.7,random_state=123)
         meta_model = LinearRegression(fit_intercept=False,copy_X=False)
         stack_model = StackingRegressor(estimators=[('XGB', model_XGB), ('bagging', model_bag)],final_estimator=meta_model)
@@ -268,6 +249,7 @@ def modelisation(df, classifier):
         pipeline.fit(X_train, y_train)
         y_pred = pipeline.predict(X_test)
 
+    start_time = time.time()
     print("fin de l'entrainement :", time.ctime(start_time))
 
     return y_pred, y_test
