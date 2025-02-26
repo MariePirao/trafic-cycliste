@@ -1,12 +1,8 @@
-import io
 import streamlit as st
-#import pandas as pd
-#import numpy as np
-#import plotly
 import utilsPython as utils # type: ignore
 import utilsPreprocess as preproc # type: ignore
 import utilsGraph as graph # type: ignore
-#import modelisation as modelisation # type: ignore
+import modelisation as modelisation # type: ignore
 import streamlit.components.v1 as components
 #import folium
 from streamlit_folium import st_folium
@@ -15,28 +11,26 @@ import pandas as pd
 import warnings
 warnings.filterwarnings('ignore')
 
-file_path = "data/"
-
 # Personnalisationde la largeur de l'affichage
 st.markdown(
     """
     <style>
         /* Largeur de la zone centrale */
         .main {
-            max-width: 60% !important; 
+            max-width: 65% !important; 
             margin-left: auto;
             margin-right: auto;
         }
 
         /* Pour les pages d'index (si besoin) */
         .block-container {
-            max-width: 60% !important;  
+            max-width: 65% !important;  
         }
     </style>
     """, unsafe_allow_html=True
 )
 
-
+file_path = "data/"
 uploaded_file = "comptage-velo-donnees-compteurs.csv"
 uploaded_file_meteo = "meteo-Paris-2024.csv"
 uploaded_file_vac = "vacances-scolaire.csv"
@@ -45,28 +39,51 @@ uploaded_file_photo = "detail_photo.csv"
 uploaded_file_travaux = "detail_impact_rue.csv"
 
 
-# permet de charger le df avec le fichier compteurs
-df = utils.load_data(file_path + uploaded_file, ";",0) 
-df_m = utils.load_data(file_path + uploaded_file_meteo, ',', 2)	
-df_v = utils.load_data(file_path + uploaded_file_vac, ',', 0)
-df_f = utils.load_data(file_path + uploaded_file_ferie, ',', 0)
-df_p = utils.load_data(file_path + uploaded_file_photo, ',', 0)
-df_ir = utils.load_data(file_path + uploaded_file_travaux, ';', 0)
-  
-# Prétraitement des données 
-df_cleaned = preproc.preprocess_cyclisme(df)
-df_m_cleaned = preproc.preprocess_meteo(df_m)
-df_vjf_cleaned = preproc.preprocess_vacancesferie(df_v,df_f)
-df_p_cleaned = preproc.preprocess_photo(df_p)
+#on evite de refaire les diffférents dataframe s'ils sont déjà en session
+if 'df_merged_cleaned_final' not in st.session_state: # si on a déjà caculer ce df c'est que tout a déjà été calculé et mis en session
+    # Si pas encore dans session_state, faire les calculs
+    # permet de charger le df avec le fichier compteurs
+    df = utils.load_data(file_path + uploaded_file, ";",0) 
+    df_m = utils.load_data(file_path + uploaded_file_meteo, ',', 2)	
+    df_v = utils.load_data(file_path + uploaded_file_vac, ',', 0)
+    df_f = utils.load_data(file_path + uploaded_file_ferie, ',', 0)
+    df_p = utils.load_data(file_path + uploaded_file_photo, ',', 0)
+    df_ir = utils.load_data(file_path + uploaded_file_travaux, ';', 0)
+    df_cleaned = preproc.preprocess_cyclisme(df)
+    df_m_cleaned = preproc.preprocess_meteo(df_m)
+    df_vjf_cleaned = preproc.preprocess_vacancesferie(df_v,df_f)
+    df_p_cleaned = preproc.preprocess_photo(df_p)
+    df_merged = utils.merge(df_cleaned,df_m_cleaned,df_vjf_cleaned,df_p_cleaned,df_ir)
+    df_merged_cleaned = preproc.corriger_comptage(df_merged) 
+    df_merged_cleaned_final = preproc.correctionDataviz(df_merged_cleaned) 
+
+    st.session_state.df = df
+    st.session_state.df_m = df_m 
+    st.session_state.df_v = df_v
+    st.session_state.df_f = df_f 
+    st.session_state.df_p = df_p 
+    st.session_state.df_ir = df_ir
+    st.session_state.df_cleaned = df_cleaned
+    st.session_state.df_m_cleaned = df_m_cleaned
+    st.session_state.df_vjf_cleaned = df_vjf_cleaned
+    st.session_state.df_p_cleaned = df_p_cleaned
+    st.session_state.df_merged = df_merged
+    st.session_state.df_merged_cleaned = df_merged_cleaned
+    st.session_state.df_merged_cleaned_final = df_merged_cleaned_final
+else:
+    # Sinon, récupérer les données depuis session_state
+    df =st.session_state.df
+    df_m = st.session_state.df_m
+    df_v = st.session_state.df_v
+    df_f = st.session_state.df_f
+    df_p_cleaned = st.session_state.df_p_cleaned
+    df_ir= st.session_state.df_ir
+    df_merged = st.session_state.df_merged
+    df_merged_cleaned = st.session_state.df_merged_cleaned
+    df_merged_cleaned_final = st.session_state.df_merged_cleaned_final
 
 
-df_merged = utils.merge(df_cleaned,df_m_cleaned,df_vjf_cleaned,df_p_cleaned,df_ir)
-
-df_merged_cleaned = preproc.corriger_comptage(df_merged) 
-
-#dernier netoyage lié a ce qu'on a vu dans la dataviz, ex concaténation des zone de vacance
-df_merged_cleaned_final = preproc.correctionDataviz(df_merged_cleaned) 
-
+#utils.create_data(df_merged_cleaned_final, file_path)
 
 image_path = "image_Top.jpg"  
 st.image(image_path, width=400) 
@@ -74,17 +91,11 @@ st.image(image_path, width=400)
 st.title("Trafic cycliste à PARIS")
 st.sidebar.title("Sommaire")
 pages=["Présentation du sujet","Exploration", "DataVizualization", "Modélisation"]
-page=st.sidebar.radio("Aller vers", pages)
+page=st.sidebar.radio("Aller vers", pages, key='menu_principal')
 
 #ce qui s'affiche si l 'option 1 de pages est sélectionné
 if page == pages[0] : 
   st.write("### Présentation")
-  #st.markdown("*Streamlit* is **really** ***cool***.")
-  #st.markdown('''
-  #  :red[Streamlit] :orange[can] :green[write] :blue[text] :violet[in]
-  #  :gray[pretty] :rainbow[colors] and :blue-background[highlight] text.''')
-  #st.markdown("Here's a bouquet &mdash;\
-  #          :tulip::cherry_blossom::rose::hibiscus::sunflower::blossom:")
 
   multi = '''La Ville de Paris déploie depuis plusieurs années des compteurs à vélo permanents pour évaluer le développement de la pratique cycliste.
   Ce projet a pour objectif d’effectuer une analyse des données récoltées par ces compteurs vélo afin de visualiser les horaires et les zones d’affluences.
@@ -274,12 +285,8 @@ if page == pages[1] :
       explication0 = '''Il y a un compteur dans chaque sens. Puisque la borne a compté correctement dans un sens. Nous sommes en droit de penser que la borne à était inopérante à ce moment là'''
     elif (selected_compteur == 'Face au 48 quai de la marne'):
       explication0 = '''?????'''
-    #elif (selected_compteur == "Quai d'Orsay"):
-    #  explication0 = '''?????'''
     elif (selected_compteur == '"Totem 73 boulevard de Sébastopol'):
       explication0 = '''Il y a un compteur dans chaque sens. Puisque la borne a compté correctement dans un sens. Nous sommes en droit de penser que la borne à était inopérante à ce moment là'''
-    #elif (selected_compteur == "Totem 85 quai d'Austerlitz"): 
-    #  explication0 = '''?????'''
     st.markdown(explication0, unsafe_allow_html=True)
     st.markdown("### Distribution de la variable comptage_horaire des vélos")
     fig = graph.boxplot(df_merged['comptage_horaire'])
@@ -300,7 +307,7 @@ if page == pages[1] :
     st.plotly_chart(fig2, key="graph_abherrante_2")
     fig = graph.boxplot(df_merged_cleaned['comptage_horaire'])
     st.pyplot(fig)
-  # Ajouter du contenu à chaque onglet
+  
 
   with ongletD:
     st.markdown("### Dataframe final")
@@ -312,7 +319,6 @@ if page == pages[2] :
   titres_onglets = ['Univarié','Multivarié']
   onglet1, onglet2 = st.tabs(titres_onglets)
  
-  # Ajouter du contenu à chaque onglet
   with onglet1:
     st.markdown("### Carte des Bornes de Comptage Vélo")
     map_file = graph.generate_folium_map(df_merged,"carte_bornes_velos.html")
@@ -356,37 +362,66 @@ if page == pages[2] :
     conclusionVacances = '''Vu le résultat de ce graph,nous pouvons clairement affirmer que la zone n'a pas d'influence.
     nous allons donc merger les 3 colonnes pour la suite de l'analyse '''
     st.markdown(conclusionVacances, unsafe_allow_html=True)
-    #fig = graph.boxplot_vacances3(df_merged_cleaned)
-    #st.pyplot(fig)
+
 
   
 
 #ce qui s'affiche si l 'option 2 de pages est sélectionné
 if page == pages[3] : 
-  st.write("### Modélisation")
 
-  X_train, X_test, y_train, y_test = utils.modelisation(df_merged_cleaned_final)
-  #X_train, X_test, y_train, y_test = modelisation.modelisation(df_merged_cleaned)
- 
-  choix = ['', '','']
-  #choix = ['LinearRegression', 'DecisionTreeRegressor','Random Forest Regressor']
-  option = st.selectbox('Choix du modèle', choix)
-  st.write('Le modèle choisi est :', option)
+  sous_menus = ["Modélisation Regressor", "Modélisation Temporelle"]
+  sous_menu = st.sidebar.radio("Choisissez un type de modélisation", sous_menus, key='sous_menu')
 
-  clf = utils.prediction(option,X_train, y_train)
-  #clf = modelisation.prediction(option,X_train, y_train)
+  if sous_menu == sous_menus[0]:
 
-  display = st.radio('Que souhaitez-vous montrer ?', ('score (R²)', 'metrique MAE','Nuage de point de prédiction'))
-  #if display == 'score (R²)':
-    #trainScore,testScore = utils.scores(clf, display,X_train, X_test, y_train, y_test)
-    #trainScore,testScore = modelisation.scores(clf, display,X_train, X_test, y_train, y_test)
-    #st.write("Sur les données d'entrainement :",trainScore)
-    #st.write("Sur les données de test :",testScore)
-  #elif display == 'metrique MAE':
-    #trainMae,testMae = utils.scores(clf, display, X_train, X_test, y_train, y_test)
-    #trainMae,testMae = modelisation.scores(clf, display, X_train, X_test, y_train, y_test)
-    #st.write("Sur les données d'entrainement :",trainMae)
-    #st.write("Sur les données de test :",testMae)
-  #elif display == 'Nuage de point de prédiction':
-    #fig = graph.pix_prediction(clf, X_test,y_test)
-    #st.pyplot(fig)
+    st.write("### Modèles Regressor")
+
+    listCompteur = ['All'] + utils.searchUnique(df_merged_cleaned_final, 'nom_compteur').tolist()
+    nom_compteur_selectionne = st.selectbox('Sélectionnez un nom de compteur', options=listCompteur)
+    st.write('Le compteur choisi est :', nom_compteur_selectionne )
+
+    choix = ['XGBRegressor', 'DecisionTreeRegressor','Random Forest Regressor','GradientBoostingRegressor','BaggingRegressor','StackingRegressor', 'AdaBoostRegressor']
+    option = st.selectbox('Choix du modèle', choix)
+    st.write('Le modèle choisi est :', option)
+    if option in ['XGBRegressor', 'StackingRegressor']:
+      utils.modelisation(df_merged_cleaned_final)
+    else:
+      X_train, X_test, y_train, y_test = modelisation.modelisation(df_merged_cleaned_final,nom_compteur_selectionne)
+      clf = modelisation.prediction(option,X_train, y_train)
+      display = st.radio('Que souhaitez-vous montrer ?', ('metrique MAE','score (R²)', 'Nuage de point de prédiction'))
+      if display == 'metrique MAE':
+        trainMae,testMae = modelisation.scores(clf, display, X_train, X_test, y_train, y_test)
+        st.write("Sur les données d'entrainement :",trainMae)
+        st.write("Sur les données de test :",testMae)
+      elif display == 'score (R²)':
+        trainScore,testScore = modelisation.scores(clf, display,X_train, X_test, y_train, y_test)
+        st.write("Sur les données d'entrainement :",trainScore)
+        st.write("Sur les données de test :",testScore)
+      elif display == 'Nuage de point de prédiction':
+        fig = graph.pix_prediction(clf, X_test,y_test)
+        st.pyplot(fig)
+    
+  if sous_menu == sous_menus[1]:
+
+    st.write("### Modèles temporelles")
+
+    models = utils.modelisationT(df_merged_cleaned_final)
+
+    # Sélection du compteur par l'utilisateur
+    listCompteur2 = utils.searchUnique(df_merged_cleaned_final, 'nom_compteur').tolist()
+    compteur_a_predire = st.selectbox('Sélectionnez un nom de compteur', options=listCompteur2)
+    st.write('Le compteur choisi est :', compteur_a_predire )
+
+    # Extraire les données, former et évaluer le modèle
+    model = models[compteur_a_predire]['model']
+    test_data = models[compteur_a_predire]['test_data']
+    train_data = models[compteur_a_predire]['train_data']
+  
+    test_data, test_predictions, mae = utils.predict_and_evaluate(model, train_data,test_data)
+    
+    # Afficher le MAE
+    st.write(f"Mean Absolute Error (MAE) pour le compteur {compteur_a_predire}: {mae}")
+
+    # Générer et afficher le graphique
+    fig = graph.generate_graph_Tempo(test_data, test_predictions, compteur_a_predire)
+    st.pyplot(fig)

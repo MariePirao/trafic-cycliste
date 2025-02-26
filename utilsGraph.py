@@ -1,4 +1,5 @@
 #import streamlit as st
+from numpy import int64
 import pandas as pd
 #import numpy as np
 import matplotlib.pyplot as plt
@@ -24,20 +25,14 @@ def plot_heatmap(df):
 
     df_work = df.copy()
 
-    columns_to_consider = ['comptage_horaire',
-                           'precipitation_encoded',
-                           'heure',
-                           'num_jour_semaine',
-                           'vacances',
-                           'neutralise',
-                           'fait_jour',
-                           'Partage','1Sens','latitude','num_mois']
+    columns_to_consider = ['comptage_horaire','heure','num_jour_semaine','num_mois','fait_jour', 
+                           'weekend','vacances','neutralise','precipitation_encoded',
+                           'Partage','1Sens','latitude','longitude',
+                           'temperature_encoded']
 
     # Calculer la matrice de corrélation en utilisant les colonnes sélectionnées
     corr_matrix = df_work[columns_to_consider].corr()
 
-
-    """Affiche une heatmap de corrélation."""
     fig, ax = plt.subplots()
     sns.heatmap(corr_matrix.corr(), ax=ax, annot=True, cmap='coolwarm', fmt=".2f")
     return fig  # Retourne la figure pour Streamlit
@@ -62,10 +57,8 @@ def px_compteurs_quotidien_0(df, selected_compteur):
         "33 avenue des Champs Elysées NO-SE": ("2024-01-01", "2024-02-20"),
         "38 rue Turbigo NE-SO": ("2024-12-23", "2025-01-10"),
         "38 rue Turbigo SO-NE" : ("2024-12-29","2025-01-08"),
-        #"38 rue Turbigo" : ("2024-12-29","2025-01-08"),
         "Face au 48 quai de la marne Face au 48 quai de la marne Vélos NE-SO" : ("2024-05-02", "2024-05-12"),
         "Face au 48 quai de la marne Face au 48 quai de la marne Vélos SO-NE" : ("2024-05-02", "2024-05-12"),
-        #"Face au 48 quai de la marne" : ("2024-04-30", "2024-05-17"),
         "72 boulevard Richard Lenoir S-N": ("2024-01-05", "2024-02-03"),
         "77 boulevard Richard Lenoir N-S": ("2024-01-05", "2024-02-03"),
         "Pont des Invalides (couloir bus) N-S": ("2024-10-28", "2024-11-15"),
@@ -74,19 +67,14 @@ def px_compteurs_quotidien_0(df, selected_compteur):
         "27 quai de la Tournelle 27 quai de la Tournelle Vélos SE-NO" : ("2024-12-02","2024-12-15"),
         "Face au 16 avenue de la  Porte des Ternes O-E" : ("2024-10-02","2024-11-08"),
         "16 avenue de la Porte des Ternes E-O" : ("2024-10-02","2024-11-08"),
-        #"Quai d'Orsay E-O" : ("2025-01-04","2025-01-30"),
-        #"Quai d'Orsay O-E" : ("2025-01-04","2025-01-30"),
         "Totem 73 boulevard de Sébastopol N-S": ("2024-03-10","2024-04-17"),
         "Totem 73 boulevard de Sébastopol S-N": ("2024-03-10","2024-04-17"),
-        #"Totem 85 quai d'Austerlitz SE-NO" : ("2025-01-01","2025-01-07"),
-        #"Totem 85 quai d'Austerlitz NO-SE" : ("2025-01-01","2025-01-07")
         }
 
     if selected_compteur in period_dict:
         selected_compteurs = [selected_compteur]  
     else:
         selected_compteurs = [compteur for compteur in period_dict.keys() if selected_compteur in compteur]
-
 
     start_date, end_date = period_dict[selected_compteurs[0]]
     if (selected_compteur == "10 avenue de la Grande Armée SE-NO"):
@@ -189,13 +177,7 @@ def sns_scatter_meteo(df):
     return fig
 
 def top10Flop10(df):
-    # Sélection des données de 2024-01 à 2025-01 :
-    #df = df[~df['mois_année'].str.startswith('2022-')] drop déjà effectué dans df_cleaned
-    # Transformation du type de la variable 'date_heure_comptage' en datetime :
-    #df['date_heure_comptage'] = pd.to_datetime(df['date_heure_comptage'], utc=True)
-    # ou selon ton code (que je n'ai pas encore appliqué):
-    #df['time'] = pd.to_datetime(df['date_heure_comptage'], utc=True).dt.tz_convert(None)
-
+ 
     df_grouped = df.groupby('nom_compteur')['comptage_horaire'].mean().reset_index()
     df_sorted = df_grouped.sort_values(by='comptage_horaire', ascending=False)
 
@@ -216,38 +198,28 @@ def top10Flop10(df):
 
 def dayNight(df):   # a corriger
 
-
     # Filtrer les données en fonction de 'is_day'
     all_hours = pd.DataFrame({'heure': range(24)})
-    df_day = df.loc[df['fait_jour'] == 1]  # Données pour le jour (is_day = 1)
-    #df_day['time'] = pd.to_datetime(df_day['date_heure_comptage'], utc=True).dt.tz_convert(None)
-
-    df_night = df.loc[df['fait_jour'] == 0]  # Données pour la nuit (is_day = 0)
-    #df_night['time'] = pd.to_datetime(df_night['date_heure_comptage'], utc=True).dt.tz_convert(None)
-
+    df_day = df.loc[df['fait_jour'] == 1] 
+    df_night = df.loc[df['fait_jour'] == 0] 
 
      # Calculer la moyenne des passages des vélos par heure pour le jour
     df_day_avg = df_day.groupby('heure')['comptage_horaire'].mean()
-    # Réinitialiser l'index des DataFrames de moyennes
     df_day_avg = df_day_avg.reset_index()
     df_day_avg = all_hours.merge(df_day_avg, on='heure', how='left')
-    df_day_avg['comptage_horaire'] = df_day_avg['comptage_horaire'].fillna(0)  # Remplir les NaN avec 0 pour les heures sans comptage
+    df_day_avg['comptage_horaire'] = df_day_avg['comptage_horaire'].fillna(0)  
 
     # Calculer la moyenne des passages des vélos par heure pour la nuit
     df_night_avg = df_night.groupby('heure')['comptage_horaire'].mean()
     df_night_avg = df_night_avg.reset_index()
     df_night_avg = all_hours.merge(df_night_avg, on='heure', how='left')
-    df_night_avg['comptage_horaire'] = df_night_avg['comptage_horaire'].fillna(0)  # Remplir les NaN avec 0 pour les heures sans comptage
-
-    # Créer la figure avec Plotly
+    df_night_avg['comptage_horaire'] = df_night_avg['comptage_horaire'].fillna(0)
+    
     fig = go.Figure()
-
     # Ajouter la courbe pour les passages de vélos pendant le jour
     fig.add_trace(go.Scatter(x=df_day_avg['heure'], y=df_day_avg['comptage_horaire'], mode='lines', name='Jour', line=dict(color='purple')))
-
     # Ajouter la courbe pour les passages de vélos pendant la nuit
     fig.add_trace(go.Scatter(x=df_night_avg['heure'], y=df_night_avg['comptage_horaire'], mode='lines', name='Nuit', line=dict(color='blue')))
-
     # Mettre à jour les options du graphique
     fig.update_layout(
         title="Moyenne des Passages de Vélos par Heure - Jour vs Nuit",
@@ -518,4 +490,30 @@ def nbLigne_compteur(df):
                  y='Nombre de Lignes',
                  labels={'Nom du compteur': 'compteur', 'Nombre de Lignes': 'Nombre de lignes'},
                  height=400)    
+    return fig
+
+def generate_graph_Tempo(test_data, test_predictions, compteur):
+    """
+    Génère un graphique comparant les données réelles et les prédictions.
+    """
+    test_data['ds'] = pd.to_datetime(test_data['ds'])
+    test_predictions['ds'] = pd.to_datetime(test_predictions['ds'])
+
+    start_date = pd.to_datetime('2025-01-25')
+    end_date = pd.to_datetime('2025-01-31')
+
+    # Filtrer pour janvier 2015
+    period_test_data = test_data[(test_data['ds'] >= start_date) & (test_data['ds'] <= end_date)]
+    period_test_predictions = test_predictions[(test_predictions['ds'] >= start_date) & (test_predictions['ds'] <= end_date)]
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.plot(period_test_data['ds'], period_test_data['y'], label='Vraies données', color='blue')
+    ax.plot(period_test_predictions['ds'], period_test_predictions['yhat'], label='Prédictions', color='red', linestyle='--')
+    ax.fill_between(period_test_predictions['ds'], period_test_predictions['yhat_lower'], 
+                period_test_predictions['yhat_upper'], color='orange', alpha=0.15, label='Intervalle de confiance (80%)')
+    ax.set_xlabel('Date')
+    ax.set_ylabel('Comptage horaire')
+    ax.set_title(f'Prédictions vs Réalité pour le compteur {compteur}')
+    ax.legend()
+
     return fig

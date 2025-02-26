@@ -26,82 +26,47 @@ def rename(df):
 
     # Création  d'un dictionnaire pour remplacer les NaNs en fonction du nom_compteur :
     replacement_dict = {
-    'Face au 48 quai de la marne Face au 48 quai de la marne Vélos NE-SO': {#'Identifiant du compteur': '100047542-103047542',
-                                                                            #'Identifiant du site de comptage':100047542.0,
-                                                                            'nom_site': 'Face au 48 quai de la marne',
-                                                                            #"Date d'installation du site de comptage":'2018-11-29',
+    'Face au 48 quai de la marne Face au 48 quai de la marne Vélos NE-SO': {'nom_site': 'Face au 48 quai de la marne',
                                                                             'Coordonnées géographiques':'48.89128,2.38606',
-                                                                            #'Identifiant technique compteur' : 'Y2H18086321',
                                                                             'Lien vers photo du site de comptage':'https://filer.eco-counter-tools.com/file/09/7b81e8cbd56b562fe76b93caf48d40c87cb73c3ec384291e73be46917b919009/Y2H18086318_20240516111325.jpg'},
-    'Face au 48 quai de la marne Face au 48 quai de la marne Vélos SO-NE': {#'Identifiant du compteur': '100047542-104047542',
-                                                                            #'Identifiant du site de comptage':100047542.0,
-                                                                           'nom_site': 'Face au 48 quai de la marne',
-                                                                           #"Date d'installation du site de comptage":'2018-11-29',
+    'Face au 48 quai de la marne Face au 48 quai de la marne Vélos SO-NE': {'nom_site': 'Face au 48 quai de la marne',
                                                                            'Coordonnées géographiques':'48.89128,2.38606',
-                                                                           #'Identifiant technique compteur' : 'Y2H18086321',
-                                                                            'Lien vers photo du site de comptage':'https://filer.eco-counter-tools.com/file/09/7b81e8cbd56b562fe76b93caf48d40c87cb73c3ec384291e73be46917b919009/Y2H18086318_20240516111325.jpg'},
-    'Pont des Invalides (couloir bus) N-S': {#'Identifiant du compteur': '100056223-101056223',
-                                            #'Identifiant du site de comptage':100056223.0,
-                                             'nom_site': 'Pont des Invalides (couloir bus)',
-                                             #"Date d'installation du site de comptage":'2019-11-07',
+                                                                           'Lien vers photo du site de comptage':'https://filer.eco-counter-tools.com/file/09/7b81e8cbd56b562fe76b93caf48d40c87cb73c3ec384291e73be46917b919009/Y2H18086318_20240516111325.jpg'},
+    'Pont des Invalides (couloir bus) N-S': {'nom_site': 'Pont des Invalides (couloir bus)',
                                              'Coordonnées géographiques':'48.86281,2.31037',
-                                             #'Identifiant technique compteur' : 'X2H24052142',
                                              'Lien vers photo du site de comptage':'https://filer.eco-counter-tools.com/file/09/3bbfdc91a8bc53cb0b3b2933a2be0ec48c2af827b3f20a8454e46bc30d6c1009/15730380158370.jpg'},
-    '27 quai de la Tournelle 27 quai de la Tournelle Vélos NO-SE' : {#'Identifiant du compteur': '100056336-104056336',
-                                                                    #'Identifiant du site de comptage':100056336.0,
-                                                                     'nom_site': '27 quai de la Tournelle',
-                                                                     #"Date d'installation du site de comptage":'2019-11-14',
+    '27 quai de la Tournelle 27 quai de la Tournelle Vélos NO-SE' : {'nom_site': '27 quai de la Tournelle',
                                                                      'Coordonnées géographiques':'48.85013,2.35423',
-                                                                     #'Identifiant technique compteur' : 'Y2H19070383',
                                                                      'Lien vers photo du site de comptage':'https://filer.eco-counter-tools.com/file/2c/fff4646e401ec8bc0a8ad926fa18aa5898e333e683f8d31b82b4092053a36c2c/Y2H19070383_20220803104828.jpg'},
-    '27 quai de la Tournelle 27 quai de la Tournelle Vélos SE-NO' : {#'Identifiant du compteur': '100056336-103056336',
-                                                                    #'Identifiant du site de comptage':100056336.0,
-                                                                     'nom_site': '27 quai de la Tournelle',
-                                                                     #"Date d'installation du site de comptage":'2019-11-14',
+    '27 quai de la Tournelle 27 quai de la Tournelle Vélos SE-NO' : {'nom_site': '27 quai de la Tournelle',
                                                                      'Coordonnées géographiques':'48.85013,2.35423',
-                                                                     #'Identifiant technique compteur' : 'Y2H19070383',
                                                                      'Lien vers photo du site de comptage':'https://filer.eco-counter-tools.com/file/2c/fff4646e401ec8bc0a8ad926fa18aa5898e333e683f8d31b82b4092053a36c2c/Y2H19070383_20220803104828.jpg'},
-    'Quai des Tuileries Quai des Tuileries Vélos NO-SE' : {#'Identifiant du compteur': '100056035-353266462',
-                                                            #'Identifiant du site de comptage':100056035.0,
-                                                           'nom_site': 'Quai des Tuileries',
-                                                           #"Date d'installation du site de comptage":'2021-05-18',
+    'Quai des Tuileries Quai des Tuileries Vélos NO-SE' : {'nom_site': 'Quai des Tuileries',
                                                            'Coordonnées géographiques':'48.8635,2.32239',
-                                                           #'Identifiant technique compteur' : 'Y2H24102626',
                                                            'Lien vers photo du site de comptage':'https://filer.eco-counter-tools.com/file/04/eda81070d90f5b3d5bac0eba49b237364d146fdc13aeedcf90391692e6734b04/Y2H19070337_20240611123828.jpg'},
-    'Quai des Tuileries Quai des Tuileries Vélos SE-NO' : {#'Identifiant du compteur': '100056035-353266460',
-                                                            #'Identifiant du site de comptage':100056035.0,
-                                                           'nom_site': 'Quai des Tuileries',
-                                                           #"Date d'installation du site de comptage":'2021-05-18',
+    'Quai des Tuileries Quai des Tuileries Vélos SE-NO' : {'nom_site': 'Quai des Tuileries',
                                                            'Coordonnées géographiques':'48.8635,2.32239',
-                                                           #'Identifiant technique compteur' : 'Y2H24102626',
                                                            'Lien vers photo du site de comptage':'https://filer.eco-counter-tools.com/file/04/eda81070d90f5b3d5bac0eba49b237364d146fdc13aeedcf90391692e6734b04/Y2H19070337_20240611123828.jpg'},
     }
     # Remplacement des NaNs en fonction de 'nom_compteur'
    
-    #for i in [“Identifiant du compteur”,“Identifiant du site de comptage”,“nom_site”,“Date d’installation du site de comptage”,“Coordonnées géographiques”,“Identifiant technique compteur”,“Lien vers photo du site de comptage”]:
-    #    df[i] = df.apply(lambda x: replacement_dict[x[‘nom_compteur’]][i]
-    #                     if pd.isna(x[i]) and x[‘nom_compteur’] in replacement_dict
-    #                    else x[i], axis=1)
     for compteur, replacement in replacement_dict.items():
         for col, value in replacement.items():
             df.loc[df['nom_compteur'] == compteur, col] = df.loc[df['nom_compteur'] == compteur, col].fillna(value)
-   
 
     return df
 
 
 def addline(df):
 
-    #creation d'un dataframe présentant toutes les combinaison dat/heure § identifiant compteurs
-        #liste de toutes les heures/jour entre deux dates en retirant le passage a l'heure d'été
+    #liste de toutes les heures/jour entre deux dates en retirant le passage a l'heure d'été
     date_range = pd.date_range("2024-01-01 04:00:00", "2025-01-29 23:00:00", freq="h")
     date_range = date_range[date_range != pd.Timestamp("2024-03-31 02:00:00")]
-    d_date_range = pd.DataFrame(date_range, columns=["date_heure_comptage"])     ###nouveau
-        #on créé un dataframe avec toutes les dates/heures pour tous les compteurs
-    all_identifiants = pd.DataFrame(df["nom_compteur"].unique(), columns=["nom_compteur"])     ###nouveau
-        # Faire le produit cartésien des identifiants et des dates/heures
+    d_date_range = pd.DataFrame(date_range, columns=["date_heure_comptage"]) 
+    #on créé un dataframe avec toutes les dates/heures pour tous les compteurs
+    all_identifiants = pd.DataFrame(df["nom_compteur"].unique(), columns=["nom_compteur"]) 
+    # Faire le produit cartésien des identifiants et des dates/heures
     full_df = d_date_range.merge(all_identifiants, how="cross")
-        #full_df.rename(columns={"0_x": "date_heure_comptage", "0_y": "nom_compteur"}, inplace=True)    devient inutile
 
     # on merge avec def pour créer toutes les nouvelles lignes
     merged_df = pd.merge(full_df, df[["nom_compteur", "date_heure_comptage"]], on=["nom_compteur", "date_heure_comptage"], how="left", indicator=True)
@@ -115,14 +80,13 @@ def addline(df):
 
     missing_hours_df["num_mois"] = missing_hours_df["date_heure_comptage"].dt.month
     missing_hours_df["num_jour_semaine"] = missing_hours_df["date_heure_comptage"].dt.dayofweek 
-    #
+    
     groupbycol = ["num_jour_semaine", "num_mois", "heure", "nom_compteur"]
     agg_dict = {col: 'first' for col in df.columns if col not in groupbycol}
     agg_dict['comptage_horaire'] = 'mean'
     df_saveMeanCompteur = df.groupby(groupbycol).agg(agg_dict).reset_index()
-    df_saveMeanCompteur.drop(columns=["date_heure_comptage"], inplace=True)   ###nouveau
+    df_saveMeanCompteur.drop(columns=["date_heure_comptage"], inplace=True)   
     merged_df2 = pd.merge(missing_hours_df, df_saveMeanCompteur, on=groupbycol, how="left")
-    # je pense qu'il faut supprimer les lignes où on a pas pu calculer de moyenne mensuelle sur le jour
     merged_df2.dropna(subset=["comptage_horaire"], inplace=True) 
 
     df_final = pd.concat([merged_df2, df], ignore_index=True)
@@ -138,12 +102,9 @@ def preprocess_cyclisme(df):
     df_work.drop(columns=["Identifiant du compteur","Identifiant du site de comptage","Date d'installation du site de comptage","Identifiant technique compteur"], inplace=True)
     df_work.drop(columns=["url_sites", "id_photo_1", "type_dimage","ID Photos","test_lien_vers_photos_du_site_de_comptage_"], inplace=True)
     
-    df_work.rename(columns={"Nom du compteur": "nom_compteur", 
-                       "Nom du site de comptage": "nom_site",
-                       "Comptage horaire": "comptage_horaire",
-                       "Date et heure de comptage": "date_heure_comptage",
-                       "mois_annee_comptage":"mois_année"
-                       }, inplace=True) 
+    df_work.rename(columns={"Nom du compteur": "nom_compteur", "Nom du site de comptage": "nom_site",
+                            "Comptage horaire": "comptage_horaire","Date et heure de comptage": "date_heure_comptage",
+                            "mois_annee_comptage":"mois_année"}, inplace=True) 
     # traitement de la date en format datetime
     df_work["date_heure_comptage"] = df_work["date_heure_comptage"].str[:18]
     df_work["date_heure_comptage"] = pd.to_datetime(df_work["date_heure_comptage"])
@@ -152,7 +113,7 @@ def preprocess_cyclisme(df):
     df_work = df_work.drop(df_work[(df_work['nom_compteur'].str.contains('27 quai de la Tournelle 27 quai de la Tournelle')) 
                     & (df_work["date_heure_comptage"] == '2024-11-12 23:00:00') & (df_work['comptage_horaire'] == 0.0)].index)
 
-    #ajout d'une photo
+    #ajout d'une photo manquante
     df_work.loc[df_work["nom_compteur"] == "35 boulevard de Ménilmontant NO-SE", ["Lien vers photo du site de comptage"]] = "https://drive.google.com/file/d/1GfPWIbU_Luv7tvOCJAk4AtciLjMEj8GA/view?usp=drive_link"
 
     #complétude des données manquantes et remplacement de certains noms
@@ -160,16 +121,14 @@ def preprocess_cyclisme(df):
 
     #ajout de données pour gérer les mois/nom de jour et année /heure etc..
     df_work["année"] = df_work["date_heure_comptage"].dt.year     # personne ne l'utilise pour le moment
-    df_work["num_mois"] = df_work["date_heure_comptage"].dt.month    # personne ne l'utilise pour le moment
+    df_work["num_mois"] = df_work["date_heure_comptage"].dt.month  
     df_work["num_jour_mois"] = df_work["date_heure_comptage"].dt.day
-    df_work['num_jour_semaine'] = df_work["date_heure_comptage"].dt.dayofweek #lundi = 0 
+    df_work['num_jour_semaine'] = df_work["date_heure_comptage"].dt.dayofweek 
     df_work["heure"] = df_work["date_heure_comptage"].dt.hour
     df_work["date"] = df_work["date_heure_comptage"].dt.date
     df_work["date"] = pd.to_datetime(df_work["date"])
 
-
     df_work = addline(df_work)
-
 
     df_work[['latitude', 'longitude']] = df_work['Coordonnées géographiques'].str.split(',', expand=True)
     df_work["latitude"] = pd.to_numeric(df_work["latitude"], errors="coerce")
@@ -185,12 +144,9 @@ def preprocess_cyclisme(df):
     df_work.sort_values(by=["date_heure_comptage","nom_compteur"], ascending=True, inplace=True)
     df_work.reset_index(drop=True, inplace=True)
 
-    #df_work = correctionCompteur0(df_work)
-
     return df_work
 
 def preprocess_meteo(df):
-
 
     """Prétraitement des données : suppression des valeurs manquantes et sélection des colonnes numériques."""
     df_m = df.drop(columns='wind_speed_100m (km/h)', axis = 1)
@@ -198,27 +154,25 @@ def preprocess_meteo(df):
 
     # Convertir la colonne 'heure_gmt' en type datetime
     df_m['time'] = pd.to_datetime(df['time'])
-
-    # Localiser en GMT (UTC dans ce cas)
     df_m['time'] = df_m['time'].dt.tz_localize('GMT')
-
-    # Convertir l'heure GMT en heure de Paris (CET ou CEST en fonction de la date)
     df_m['time'] = df_m['time'].dt.tz_convert('Europe/Paris')
 
-    # stronquer les decalages horaire
+    # tronquer les decalages horaire
     df_m["time"] = df_m["time"].astype("str").str[:18]
     df_m["time"] = pd.to_datetime(df_m["time"])
 
-
+    # categoriser les données numériques
     df_m['precipitation'] = pd.cut(x=df_m['precipitation_mm'], bins=[0.0, 0.5, 3.5, 16.0],
                                    labels=['Pas de pluie/bruine', 'Pluie modérée', 'Fortes averses'], right=False)
     df_m['wind'] = pd.cut(x=df_m['wind_speed'], bins=[0.0, 5, 19, 38, 43.0],
                           labels=['Pas de vent', 'Vent modérée', 'vent', 'grand vent'], right=False)
     df_m['temperature'] = pd.cut(x=df_m['temperature_2m'], bins=[-10, 0, 10, 20, 30, 36],
                                  labels=['Gel','Froid', 'Tempéré', 'Chaud', 'Très chaud'], right=False)
+    
     return df_m
 
 def preprocess_vacancesferie(df_v, df_jf):
+
     """Prétraitement des données : fichier des jours fériés"""
     # creation d'une colonne en datatime
     #df_jf['time'] = pd.to_datetime(df_jf['date'], utc=True).dt.tz_convert(None)
@@ -243,14 +197,11 @@ def preprocess_vacancesferie(df_v, df_jf):
     #df_jf = pd.concat([df_jf, weekends_df], ignore_index=True)
     #df_jf = df_jf.sort_values(by='time').reset_index(drop=True)
 
-
     # creation d'une colonne en datatime
-    #df_v['time'] = pd.to_datetime(df_v['date'], utc=True).dt.tz_convert(None)
     df_v['date'] = pd.to_datetime(df_v['date'])
     #suppression des lignes hors période
     #df_v = df_v.dropna(axis = 0, how = 'all', subset = ['nom_vacances'])
     df_filtered = df_v[(df_v['date'] >= '2024-01-01') & (df_v['date'] <= '2025-02-01')]
-
 
     #creation d'un dataframe commun jour férier et congé
     df_jv = df_filtered
@@ -267,7 +218,6 @@ def preprocess_vacancesferie(df_v, df_jf):
                 })
         else:
             df_jv.loc[df_jv['date'] == element['date'], ['vacances_zone_a', 'vacances_zone_b', 'vacances_zone_c']] = True
-            #df_jv.loc[df_jv['time'] == element['time'], 'nom_vacances'] = (df_jv.loc[df_jv['time'] == element['time'], 'nom_vacances'] + " / " + element['nom_jour_ferie'])
             df_jv.loc[df_jv['date'] == element['date'], 'nom_vacances'] = (df_jv.loc[df_jv['date'] == element['date'], 'nom_vacances'].fillna('') + " / " + element['nom_jour_ferie'])
     # Ajouter les nouvelles lignes en une seule fois avec pd.concat()
     if new_rows:
@@ -280,11 +230,10 @@ def preprocess_vacancesferie(df_v, df_jf):
     df_jv['vacances_zone_b'] = df_jv['vacances_zone_b'].replace(replace_dict).infer_objects(copy=False)
     df_jv['vacances_zone_c'] = df_jv['vacances_zone_c'].replace(replace_dict).infer_objects(copy=False)
 
-
     return df_jv
 
 def preprocess_photo(df):
-    """Prétraitement des données : suppression des valeurs manquantes et sélection des colonnes numériques."""
+    """Suppression colonnes inutiles"""
     df.drop(columns=['Unnamed: 0'], inplace=True)
     df.drop(columns=['2sens'], inplace=True)
     df.drop(columns=['Separe'], inplace=True)
@@ -295,10 +244,13 @@ def correctionDataviz(df):
     df_work = df.copy()
     #selon la recommandation concernant le graph sur les vacances nous allons utiliser qu'une colonne vacances
     df_work['vacances'] = df_work[['vacances_zone_a', 'vacances_zone_b', 'vacances_zone_c']].apply(lambda x: 1 if x.max() == 1 else 0, axis=1)
+    # Créer une nouvelle colonne 'weekend' où 1 correspond au weekend (samedi ou dimanche)
+    df_work['weekend'] = df_work['num_jour_semaine'].apply(lambda x: 1 if x >= 5 else 0)
 
     return df_work
 
 def corriger_comptage(dfenter):
+
     df_result = dfenter.copy()
     
     df_result = df_result[(df_result["nom_compteur"] != "10 avenue de la Grande Armée 10 avenue de la Grande Armée [Bike OUT]")
@@ -326,13 +278,11 @@ def corriger_comptage(dfenter):
 
     # Boucle pour appliquer les valeurs de comptage de la période de référence à la période incorrecte
     for idx, row in df_incorrecte.iterrows():
-        heure = row['date_heure_comptage'].hour  # Récupérer l'heure de l'enregistrement
+        heure = row['date_heure_comptage'].hour  #
         if heure in reference_dict:
             df_result.at[idx, 'comptage_horaire'] = reference_dict[heure]  # Appliquer la valeur de comptage correspondante
 
-    df_result = df_result[df_result["num_mois"] != '7']
-
-    df_result0NotNeutralise = correctionCompteur0(df_result)
+    df_result = correctionCompteur0(df_result)
 
     return df_result
 
@@ -340,17 +290,13 @@ def corriger_comptage(dfenter):
 def correctionCompteur0(df):
     df_result = df.copy()
 
+    #compteur avec les preriode a 0
     df_result0NotNeutralise = searchCompteur0(df_result)
-
-    #list des compteur avec les preriode a 0
     df_result = remplacerParMoyenne(df_result, df_result0NotNeutralise)
 
     return df_result
 
 def remplacerParMoyenne(df, df_0):
-
-    start_time = time.time()
-    print("je rentre dans remplacerParMoyenne :", time.ctime(start_time))
 
     groupbytout = ["num_jour_semaine", "heure"]
     moyenneGen = df.groupby(groupbytout)['comptage_horaire'].mean().reset_index()
@@ -378,21 +324,13 @@ def remplacerParMoyenne(df, df_0):
     df_result["comptage_horaire"] = df_result["compteur_final"]
     df_result = df_result.drop(columns=["compteur_final"])
 
-
-    start_time = time.time()
-    print("je soir de remplacerParMoyenne:", time.ctime(start_time))
-
     return df_result
 
 def searchCompteur0 (df):
 
-    start_time = time.time()
-    print("je rentre dans  searchCompteur0:", time.ctime(start_time))
-
     '''
     Dans cette méthode on va chercher les itération de 20 lignes sur le meme compteur qui présente un compteur à 0 sans raison de neutralisation'''
     
-
     df_work = df.copy()
      
     #on va chercher 20 itérations d'affilées. IL faut donc s'assurer que le df est trié par com de compteur puis date_heure_comptage
@@ -418,7 +356,7 @@ def searchCompteur0 (df):
             iteration += 1
             if (iteration == 1):
                 dateStart = ligne["date_heure_comptage"]
-            if (iteration >= 20):
+            if (iteration >= 10):
                 dateEnd = ligne["date_heure_comptage"]
                 addLigne = {"nom_compteur": ligne["nom_compteur"], "dateStart": dateStart, "dateEnd": dateEnd}
         previousCompteur =ligne["nom_compteur"]
@@ -441,8 +379,5 @@ def searchCompteur0 (df):
             expanded_data.append([row['nom_compteur'], hour,heure,numJour])
     # Créer un nouveau dataframe avec les résultats
     expanded_df = pd.DataFrame(expanded_data, columns=['nom_compteur', 'date_heure_comptage', "heure","num_jour_semaine"])
-
-    start_time = time.time()
-    print("je sors dans  searchCompteur0:", time.ctime(start_time))
 
     return expanded_df
