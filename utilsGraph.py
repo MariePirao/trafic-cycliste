@@ -11,6 +11,7 @@ from plotly.subplots import make_subplots
 import folium
 import plotly.express as px
 from sklearn.preprocessing import OrdinalEncoder
+from random import choices
 # Pour éviter d'avoir les messages warning
 import warnings
 warnings.filterwarnings('ignore')

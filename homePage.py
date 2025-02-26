@@ -391,7 +391,7 @@ if page == pages[3] :
       y_pred, y_test = utils.modelisation(df_merged_cleaned_final, option)
       st.write("Sur les données de test :",mean_absolute_error(y_test, y_test))
     else:
-      X_train, X_test, y_train, y_test = modelisation.modelisation(df_merged_cleaned_final,nom_compteur_selectionne)
+      X_train, X_test, y_train, y_test = modelisation.modelisation1(df_merged_cleaned_final,nom_compteur_selectionne)
       clf = modelisation.prediction(option,X_train, y_train)
       display = st.radio('Que souhaitez-vous montrer ?', ('metrique MAE','score (R²)', 'Nuage de point de prédiction'))
       if display == 'metrique MAE':
@@ -410,7 +410,7 @@ if page == pages[3] :
 
     st.write("### Modèles temporelles")
 
-    models = utils.modelisationT(df_merged_cleaned_final)
+    models = modelisation.modelisationT(df_merged_cleaned_final)
 
     # Sélection du compteur par l'utilisateur
     listCompteur2 = utils.searchUnique(df_merged_cleaned_final, 'nom_compteur').tolist()
@@ -422,7 +422,7 @@ if page == pages[3] :
     test_data = models[compteur_a_predire]['test_data']
     train_data = models[compteur_a_predire]['train_data']
   
-    test_data, test_predictions, mae = utils.predict_and_evaluate(model, train_data,test_data)
+    test_data, test_predictions, mae = modelisation.predict_and_evaluate(model, train_data,test_data)
     
     # Afficher le MAE
     st.write(f"Mean Absolute Error (MAE) pour le compteur {compteur_a_predire}: {mae}")
