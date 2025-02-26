@@ -388,7 +388,7 @@ if page == pages[3] :
     option = st.selectbox('Choix du modèle', choix)
     st.write('Le modèle choisi est :', option)
     if option in ['XGBRegressor', 'StackingRegressor']:
-      y_pred, y_test = utils.modelisation(df_merged_cleaned_final, option)
+      y_pred, y_test = modelisation.modelisation(df_merged_cleaned_final, option)
       st.write("Sur les données de test :",mean_absolute_error(y_test, y_test))
     else:
       X_train, X_test, y_train, y_test = modelisation.modelisation1(df_merged_cleaned_final,nom_compteur_selectionne)
