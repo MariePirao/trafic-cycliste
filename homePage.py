@@ -1,18 +1,21 @@
-from sklearn.metrics import mean_absolute_error
+from datetime import datetime, time #as dt_time  # Garde time tel quel
+#from datetime import timedelta # Importer la classe time sous un alias
+import time
+#from sklearn.metrics import mean_absolute_error
 import streamlit as st
 import utilsPython as utils # type: ignore
 import utilsPreprocess as preproc # type: ignore
 import utilsGraph as graph # type: ignore
 import modelisation as modelisation # type: ignore
+from config import Config
 import streamlit.components.v1 as components
-#import folium
 from streamlit_folium import st_folium
 import pandas as pd
 # Pour éviter d'avoir les messages warning
 import warnings
 warnings.filterwarnings('ignore')
 
-# Personnalisationde la largeur de l'affichage
+# Personnalisation de la page streamlit
 st.markdown(
     """
     <style>
@@ -27,29 +30,37 @@ st.markdown(
         .block-container {
             max-width: 65% !important;  
         }
+
+        /* Réduire la taille des graphiques */
+        .stImage {
+            width: 600px;  /* Réduire la largeur de l'image */
+            height: auto;
+        }
+
+        /* Ajuster la taille de l'expander header */
+        .streamlit-expanderHeader {
+            font-size: 16px !important;
+        }
+
+        /* Ajuster l'affichage des graphiques matplotlib */
+        .stPlot {
+            width: 1000px;  /* Ajuster la largeur du graphique */
+            height: auto;
+        }
+
     </style>
     """, unsafe_allow_html=True
 )
 
-file_path = "data/"
-uploaded_file = "comptage-velo-donnees-compteurs.csv"
-uploaded_file_meteo = "meteo-Paris-2024.csv"
-uploaded_file_vac = "vacances-scolaire.csv"
-uploaded_file_ferie = "jours_feries.csv"
-uploaded_file_photo = "detail_photo.csv"
-uploaded_file_travaux = "detail_impact_rue.csv"
-
-
 #on evite de refaire les diffférents dataframe s'ils sont déjà en session
-if 'df_merged_cleaned_final' not in st.session_state: # si on a déjà caculer ce df c'est que tout a déjà été calculé et mis en session
+if 'df_merged_cleaned_final' not in st.session_state: # 60 secondes
     # Si pas encore dans session_state, faire les calculs
-    # permet de charger le df avec le fichier compteurs
-    df = utils.load_data(file_path + uploaded_file, ";",0) 
-    df_m = utils.load_data(file_path + uploaded_file_meteo, ',', 2)	
-    df_v = utils.load_data(file_path + uploaded_file_vac, ',', 0)
-    df_f = utils.load_data(file_path + uploaded_file_ferie, ',', 0)
-    df_p = utils.load_data(file_path + uploaded_file_photo, ',', 0)
-    df_ir = utils.load_data(file_path + uploaded_file_travaux, ';', 0)
+    df = utils.load_data(Config.FILE_PATH + Config.FILE, ";",0) 
+    df_m = utils.load_data(Config.FILE_PATH + Config.FILE_METEO, ',', 2)	
+    df_v = utils.load_data(Config.FILE_PATH + Config.FILE_VAC, ',', 0)
+    df_f = utils.load_data(Config.FILE_PATH + Config.FILE_FERIE, ',', 0)
+    df_p = utils.load_data(Config.FILE_PATH + Config.FILE_PHOTO, ',', 0)
+    df_ir = utils.load_data(Config.FILE_PATH + Config.FILE_TRAVAUX, ';', 0)
     df_cleaned = preproc.preprocess_cyclisme(df)
     df_m_cleaned = preproc.preprocess_meteo(df_m)
     df_vjf_cleaned = preproc.preprocess_vacancesferie(df_v,df_f)
@@ -71,186 +82,139 @@ if 'df_merged_cleaned_final' not in st.session_state: # si on a déjà caculer c
     st.session_state.df_merged = df_merged
     st.session_state.df_merged_cleaned = df_merged_cleaned
     st.session_state.df_merged_cleaned_final = df_merged_cleaned_final
-else:
+else:  #0 seconde
     # Sinon, récupérer les données depuis session_state
     df =st.session_state.df
     df_m = st.session_state.df_m
     df_v = st.session_state.df_v
     df_f = st.session_state.df_f
+    df_vjf_cleaned = st.session_state.df_vjf_cleaned
     df_p_cleaned = st.session_state.df_p_cleaned
     df_ir= st.session_state.df_ir
     df_merged = st.session_state.df_merged
     df_merged_cleaned = st.session_state.df_merged_cleaned
-    df_merged_cleaned_final = st.session_state.df_merged_cleaned_final
+    df_merged_cleaned_final = st.session_state.df_merged_cleaned_final 
 
 
-#utils.create_data(df_merged_cleaned_final, file_path)
+#affichage de l'image
+st.image(Config.IMAGE, width=400) 
 
-image_path = "image_Top.jpg"  
-st.image(image_path, width=400) 
-
+#titre et sommaire
 st.title("Trafic cycliste à PARIS")
 st.sidebar.title("Sommaire")
-pages=["Présentation du sujet","Exploration", "DataVizualization", "Modélisation"]
+pages=["Présentation du sujet","Exploration", "DataVizualization", "Modélisation","Prédiction"]
 page=st.sidebar.radio("Aller vers", pages, key='menu_principal')
 
 #ce qui s'affiche si l 'option 1 de pages est sélectionné
-if page == pages[0] : 
+if page == pages[0] : #0seconde
   st.write("### Présentation")
-
-  multi = '''La Ville de Paris déploie depuis plusieurs années des compteurs à vélo permanents pour évaluer le développement de la pratique cycliste.
-  Ce projet a pour objectif d’effectuer une analyse des données récoltées par ces compteurs vélo afin de visualiser les horaires et les zones d’affluences.
-  Ceci aura pour but de fournir des outils à la mairie de Paris afin qu’elle juge les améliorations à apporter sur les différents endroits cyclables de la ville. 
-  '''
-  st.markdown(multi, unsafe_allow_html=True)
+  st.markdown(Config.PRESENTATION, unsafe_allow_html=True)
 
   st.markdown('<p style="margin-bottom: 0px;font-size:12px; font-style:italic;">Bootcamp Analystics Enginner JAN2025', unsafe_allow_html=True)
   st.markdown('<p style="font-size:12px; font-style:italic;">Aurélie Guilhem - Ingrid Plessis - Nicolas Couvez - Marie Pirao', unsafe_allow_html=True)
 
-  st.markdown(f'<p style="margin-bottom: 0px;">Source à exploiter : {uploaded_file}</p>', unsafe_allow_html=True)
+  st.markdown(f'<p style="margin-bottom: 0px;">Source à exploiter : {Config.FILE}</p>', unsafe_allow_html=True)
   st.markdown('<p style="font-size:12px; font-style:italic;">source : <a href="https://opendata.paris.fr/explore/dataset/comptage-velo-donnees-compteurs" target="_blank">https://opendata.paris.fr/explore/dataset/comptage-velo-donnees-compteurs</a></p>', unsafe_allow_html=True)
 
   if st.checkbox("Afficher les données externes", key='page1') : # sinon les chekbox de toute l'appli sont liées
-    st.markdown(f'<p style="margin-left: 50px;margin-bottom: 0px;">🌤️ Données météorologiques :  {uploaded_file_meteo}</p>', unsafe_allow_html=True)
+    st.markdown(f'<p style="margin-left: 50px;margin-bottom: 0px;">🌤️ Données météorologiques :  {Config.FILE_METEO}</p>', unsafe_allow_html=True)
     st.markdown('<p style="margin-left: 50px;font-size:12px; font-style:italic;">source : <a href="https://www.data.gouv.fr/fr/organizations/meteo-france/" target="_blank">https://www.data.gouv.fr/fr/organizations/meteo-france/</a></p>', unsafe_allow_html=True)
 
-    st.markdown(f'<p style="margin-left: 50px;margin-bottom: 0px;">🏖️ Données vacances scolaires :  {uploaded_file_vac}</p>', unsafe_allow_html=True)
+    st.markdown(f'<p style="margin-left: 50px;margin-bottom: 0px;">🏖️ Données vacances scolaires :  {Config.FILE_VAC}</p>', unsafe_allow_html=True)
     st.markdown('<p style="margin-left: 50px;font-size:12px; font-style:italic;">source : <a href="https://www.data.gouv.fr/fr/datasets/calendrier-scolaire/" target="_blank">https://www.data.gouv.fr/fr/datasets/calendrier-scolaire/</a></p>', unsafe_allow_html=True)
     
-    st.markdown(f'<p style="margin-left: 50px;margin-bottom: 0px;">🎌 Données jours férié :  {uploaded_file_ferie}</p>', unsafe_allow_html=True)
+    st.markdown(f'<p style="margin-left: 50px;margin-bottom: 0px;">🎌 Données jours férié :  {Config.FILE_FERIE}</p>', unsafe_allow_html=True)
     st.markdown('<p style="margin-left: 50px;font-size:12px; font-style:italic;">source : <a href="https://www.data.gouv.fr/fr/datasets/jours-feries-en-france/" target="_blank">https://www.data.gouv.fr/fr/datasets/jours-feries-en-france/</a></p>', unsafe_allow_html=True)
     
-    st.markdown(f'<p style="margin-left: 50px;margin-bottom: 0px;">📸 Données detail photo :  {uploaded_file_photo}</p>', unsafe_allow_html=True)
+    st.markdown(f'<p style="margin-left: 50px;margin-bottom: 0px;">📸 Données detail photo :  {Config.FILE_PHOTO}</p>', unsafe_allow_html=True)
     st.markdown('<p style="margin-left: 50px;font-size:12px; font-style:italic;">source : effectué manuellement', unsafe_allow_html=True)
         
-    st.markdown(f'<p style="margin-left: 50px;margin-bottom: 0px;">:🚧 Données detail travaux ou bloquage des JO :  {uploaded_file_travaux}</p>', unsafe_allow_html=True)
+    st.markdown(f'<p style="margin-left: 50px;margin-bottom: 0px;">:🚧 Données detail travaux ou bloquage des JO :  {Config.FILE_TRAVAUX}</p>', unsafe_allow_html=True)
     st.markdown('<p style="margin-left: 50px;font-size:12px; font-style:italic;">source : effectué manuellement', unsafe_allow_html=True)
+
     
 #ce qui s'affiche si l 'option 1 de pages est sélectionné
-if page == pages[1] : 
+if page == pages[1] : #4 seconde
+  start_time = time.time()
+  print("debut page 1 ", time.ctime(start_time))  
   st.write("### Exploration des données")
   titres_onglets2 = ['Visualisation des données', 'Travail de nettoyage', 'Analyse spécifique de certains compteurs', 'DataframeFinal']
   ongletA, ongletB,ongletC, ongletD = st.tabs(titres_onglets2)
 
-# Ajouter du contenu à chaque onglet
-  with ongletA:
+# ONglet de présentation des différents dataframes créés 
+  with ongletA:  
     st.subheader("Aperçu du jeu de donnée")
-    st.dataframe(df.head(5))
+    st.dataframe(df.head(5))  # Affichage de l'apercu du dataframe initial
 
     st.subheader("Informations sur le jeu de donnée")
-    # Extraire les informations sur chaque colonne (describe() que pour colonne int)
-    int_columns = df.select_dtypes(include=['int64']).columns
-    info_dict = {
-      'Valeurs non-null': df.notnull().sum(),
-      'Dtype': df.dtypes,
-      'Valeur unique': [df[col].nunique(dropna=False) for col in df.columns],
-      'Min': [df[col].min() if col in int_columns else '' for col in df.columns],
-      'Max': [df[col].max() if col in int_columns else '' for col in df.columns],
-      'Médiane': [df[col].median() if col in int_columns else '' for col in df.columns],
-      'Moyenne': [df[col].mean() if col in int_columns else '' for col in df.columns]
-    }
- 
-    info_df = pd.DataFrame(info_dict)
-    st.dataframe(info_df)
-    observation = '''
-    La variable 'Nom du compteur' est toujours indiquée car le nombre de valeurs non nulles correspond à la taille du df : 913738<br>
-    La variable 'Identifiant du site de comptage' est parfois nulle mais est dans un mauvais type. Nous verrons si cette donnée est interessante pour la suite de l'analyse<br>
-    La variable 'Comptage horaire' est toujorus renseignée. Mais nous devrons étudier la valeur max car elle être très éloignée de la médiane.<br>
-    La variable 'Date et heure comptage' est toujours indiquée mais devrait être dans un type Datetime(FR).<br>
-    Les variables id_photo_1 et type_dimage n'ont chcune qu'une valeur et nan. Nous les supprimerons du df pour notre analyse.<br> '''
-    st.markdown(observation, unsafe_allow_html=True)
+    info_dict_aff = utils.informationDF(df)
+    st.dataframe(info_dict_aff)
+    st.markdown(Config.OBSERVATION_DF, unsafe_allow_html=True)
+
     if st.checkbox("Afficher les données externes", key='ongletA') :
       st.subheader("Aperçu du jeu de donnée externes")
+      
       st.write("Données météorologiques")
       st.dataframe(df_m.head())
-      observation = '''
-      Tout d'abord on peut s'apercevoir que la date est (comme l'indique le fichier source, en format GMT. Nous devrons la convertir en heure francaise pour rapprocher ces enregitrements de nos données de base<br>
-      Pour une meilleur lecture nous pourrons categoriser les données precipitation, temperature_2m et wind_speed_10m.<br>
-      Nous supprimerons la donnée concernant le vent a 100m de hauteur, qui ne peut pas avoir d'impact sur le trafic des vélo<br>
-      is_Day() indique s'il fait jour ou nuit (exemple à 19H du soir)<br>'''
-      st.markdown(observation, unsafe_allow_html=True)
+      st.markdown(Config.OBSERVATION_METEO, unsafe_allow_html=True)
+
       st.write("Données vacances scolaire")
       st.dataframe(df_v.head())
-      observation = '''
-      ????'''
-      st.markdown(observation, unsafe_allow_html=True)
+      st.markdown(Config.OBSERVATION_VAC, unsafe_allow_html=True)
+
       st.write("Données jours férié")
       st.dataframe(df_f.head())
-      observation = '''
-      ????'''
-      st.markdown(observation, unsafe_allow_html=True)
+      st.markdown(Config.OBSERVATION_JF, unsafe_allow_html=True)
+
       st.write("Données detail photo")
       st.dataframe(df_p_cleaned.head())
-      observation = '''
-      ????'''
-      st.markdown(observation, unsafe_allow_html=True)
+      st.markdown(Config.OBSERVATION_PHOTO, unsafe_allow_html=True)
+
       st.write("Données blocage rue")
       st.dataframe(df_ir.head())
-      observation = '''
-      ????'''
-      st.markdown(observation, unsafe_allow_html=True)
-
+      st.markdown(Config.OBSERVATION_TRAVAUX, unsafe_allow_html=True)
+      
   # Ajouter du contenu à chaque onglet
-  with ongletB:
-    #analyse de la dsitribution des compteurs selon les mois année
+  with ongletB: 
+    #analyse de la dsitribution des compteurs selon les mois/année et conclusion
     st.subheader("Analyse de la répartition des compteurs")
     fig = graph.plot_avg_mensuel(df,"all")
     st.plotly_chart(fig)
-    conclusion = '''Nous observons que la totalité des relevé de compteurs concerne l'année 2024/2025 avec une exception pour un relevé sur 2022.<br>
-    Nous décidons d'exclure l'énnée 2022'''
-    st.markdown(conclusion, unsafe_allow_html=True)
-    #analyse du compteur de la Grande Armée
+    st.markdown(Config.CONCLUSION_REPARTITION, unsafe_allow_html=True)
+
+    #analyse du compteur de la Grande Armée pour montrer qu'il faudra corriger certains compteurs
     st.subheader("Analyse du compteur : Grande Armée")
     fig = graph.plot_avg_mensuel(df,"GrandeArmee")
     st.plotly_chart(fig)
-    conclusion = '''Nous pouvons déduire que la borne "7 avenue de la Grande Armée NO-SE" est correcte. <br>Par contre la borne 10 avenue de la Grande Armée [Bike IN]
-    à l'air d'avoir remplacé la borne 10 avenue de la Grande Armée. Nous prenons la décision de liées les deux bornes. <br>Pour la borne 10 avenue de la Grande Armée [Bike OUT], 
-    n'ayant remonté qu'un valeur, nous decidons de supprimer ce compteur'''
-    st.markdown(conclusion, unsafe_allow_html=True)
+    st.markdown(Config.CONCLUSION_GA, unsafe_allow_html=True)
+
+    #Analyse des lignes manaquantes pour un dataframe complet sur la durée
     st.subheader("Compteurs ayant des lignes manquantes sur 2024/2025")
     fig = graph.nbLigne_compteur(df)
     st.plotly_chart(fig)
-    conclusion = '''Si nous avions un jeu de donées complet, nous aurions 9475 lignes par compteurs. Le graphique ci-dessus nous montre que c'est a peu de ligne près le cas, 
-    mais pas du tout vrai pour 7 compteurs. Mais si nous regardons les noms d'un peu plus près nous pouvons voir que ce sont tous des compteurs dont le nom est très proche d'un autre compteur
-    à la même adresse.  Nous décidons de renommer :<br>
-    Face au 48 quai de la marne NE-SO/SO-NE' en 'Face au 48 quai de la marne Face au 48 quai de la marne Vélos NE-SO/SO-NE<br>
-    Pont des Invalides N-S en Pont des Invalides (couloir bus) N-S<br>
-    27 quai de la Tournelle NO-SE/SE-NO en 27 quai de la Tournelle 27 quai de la Tournelle Vélos NO-SE/SE-NO<br>
-    Quai des Tuileries NO-SE/SE-NO en Quai des Tuileries Quai des Tuileries Vélos NO-SE/SE-NO<br>
-    Pour les autres compteurs nous allons proposer des alogorithmes pour ajouter les données.
-      '''
-    st.markdown(conclusion, unsafe_allow_html=True)
+    st.markdown(Config.CONCLUSION_NBLIGNE, unsafe_allow_html=True)
+
+    #Analyse des valeurs manquantes
     if st.checkbox("Afficher les NA", key='ongletB') :
       st.subheader("Répartition des données manquantes sur les compteurs")
       fig = graph.heatmap_isna(df)
       st.pyplot(fig)
-      conclusion = '''Nous observons que lorsqu'il manque un donnée sur une ligne du dataframe, génréralement il manque les 12 colonnes qui concerne le compteur.<br>
-      En analysant les compteurs concernés, nous pouvons compléter les données manquantes à l'aide d'une ligne du compteur sur laquelle les données concernées sont indiquées.'''
-      st.markdown(conclusion, unsafe_allow_html=True)
+      st.markdown(Config.CONCLUSION_NAN, unsafe_allow_html=True)
 
 
-  with ongletC:
+  with ongletC: 
     st.markdown("### Impact des JO sur le trafic cycliste")
     fig = graph.px_compteurs_mensuel_JO(df_merged)
     st.plotly_chart(fig)
-    explicationJO = '''Si nous faisons un focus sur les compteurs (Cours la Reine, quai des tuileries et pont de la concorde). Nous pouvons clairement voir l'impact des Jeux olympique sur les bornes.
-    En effet, le Cours de la Reine a été fermé à la circulation à partir du 26 avril 2024, entre les ponts des Invalides et Alexandre-III, pour permettre l'installation des infrastructures nécessaires aux Jeux. 
-    Le pont Alexandre III à été totalement fermé a partir du 17 mai.
-    À partir du 27 juin 2024, le Parc Rives de Seine, du pont Louis-Philippe au tunnel des Tuileries (quai bas – rive droite), a été fermé au grand public. 
-    Cette fermeture a été en vigueur jusqu'au 1ᵉʳ août 2024, avec des réouvertures partielles en soirée et les week-ends. 
-    Bien que le Pont de la Concorde soit resté accessible depuis le Cours la Reine dans le sens nord-sud, et pour la desserte locale dans le sens sud-nord, 
-    les fermetures et restrictions de circulation aux abords immédiats ont pu entraîner une diminution significative du trafic sur le pont. 
-    '''
-    st.markdown(explicationJO, unsafe_allow_html=True)
+    
+    st.markdown(Config.EXPLICATIONJO, unsafe_allow_html=True)
 
     st.markdown("### Moyenne journalière à 0 sur le trafic cycliste")
     Compteur = ['10 avenue de la Grande Armée SE-NO','106 avenue Denfert Rochereau NE-SO','135 avenue Daumesnil SE-NO','24 boulevard Jourdan E-O',
                 '33 avenue des Champs Elysées NO-SE','38 rue Turbigo','boulevard Richard Lenoir','Pont des Invalides',
                 "27 quai de la Tournelle","7 avenue de la Grande Armée NO-SE",
                 "Porte des Ternes", "Face au 48 quai de la marne",
-                #"Quai d'Orsay",
                 "Totem 73 boulevard de Sébastopol"]
-                #"Totem 85 quai d'Austerlitz" ]
     # Liste déroulante pour choisir un compteur
     selected_compteur = st.selectbox("Sélectionnez un compteur",options=Compteur,index=0)  # Par défaut, sélectionner le premier compteur
     fig = graph.px_compteurs_quotidien_0(df_merged, selected_compteur)
@@ -272,7 +236,7 @@ if page == pages[1] :
     elif (selected_compteur == '38 rue Turbigo'):
       explication0 = '''?????'''
     elif (selected_compteur == '106 avenue Denfert Rochereau NE-SO'):
-      explication0 = '''?????'''
+      explication0 = '''La borne semble hors service, nous décidons de la retirer de notre analyse'''
     elif (selected_compteur == 'boulevard Richard Lenoir'):
       explication0 = '''Il y a un compteur dans chaque sens. Puisque la borne a compté correctement dans un sens. Nous sommes en droit de penser que la borne à était inopérante à ce moment là'''
     elif (selected_compteur == 'Pont des Invalides'):
@@ -289,6 +253,8 @@ if page == pages[1] :
     elif (selected_compteur == '"Totem 73 boulevard de Sébastopol'):
       explication0 = '''Il y a un compteur dans chaque sens. Puisque la borne a compté correctement dans un sens. Nous sommes en droit de penser que la borne à était inopérante à ce moment là'''
     st.markdown(explication0, unsafe_allow_html=True)
+
+    #Analkyse ciblé sur valeur abhérrante
     st.markdown("### Distribution de la variable comptage_horaire des vélos")
     fig = graph.boxplot(df_merged['comptage_horaire'])
     st.pyplot(fig)
@@ -311,17 +277,21 @@ if page == pages[1] :
     st.plotly_chart(fig2, key="graph_abherrante_2")
     fig = graph.boxplot(df_merged_cleaned['comptage_horaire'])
     st.pyplot(fig)
-  
 
-  with ongletD:
+  with ongletD: #2seconde
     st.markdown("### Dataframe final")
     st.dataframe(df_merged_cleaned_final.head(5))
+  start_time = time.time()
+  print("fin page 1 ", time.ctime(start_time))  
+
 
 #ce qui s'affiche si l 'option 2 de pages est sélectionné
 if page == pages[2] : 
+  start_time = time.time()
+  print("début chargement 2e  page", time.ctime(start_time))  
   st.write("### DataVizualization")
-  titres_onglets = ['Univarié','Multivarié']
-  onglet1, onglet2 = st.tabs(titres_onglets)
+  titres_onglets = ['Univarié','Multivarié','Analyse choix du modèle']
+  onglet1, onglet2, onglet3 = st.tabs(titres_onglets)
  
   with onglet1:
     st.markdown("### Carte des Bornes de Comptage Vélo")
@@ -340,9 +310,14 @@ if page == pages[2] :
     st.pyplot(fig1)
 
   with onglet2:
-    #st.header('Multivarié')
-    st.write('Visualisation multivarié des données')
-    st.write("Analyse de l'impact de la météo sur le nombre de passages")
+    st.write("Nombre de passages de vélos selon l'heure et la température")
+    period_selector = st.selectbox("Sélectionnez la période", options=['semaine', 'week-end'], index=0)
+
+    # Générer et afficher le graphique en fonction de la sélection
+    fig = graph.filter_data(period_selector, df_merged_cleaned_final)
+    st.plotly_chart(fig)
+
+    st.write("Moyenne des passages de vélos en Fonction des Conditions Météorologiques")
     fig = graph.go_bar_meteo(df_merged)
     st.plotly_chart(fig)
     fig = graph.sns_scatter_meteo(df_merged)
@@ -350,9 +325,6 @@ if page == pages[2] :
     st.write("Analyse de l'impact du jour ou de la nuit sur le nombre de passages")
     fig = graph.dayNight(df_merged)
     st.plotly_chart(fig)
-    st.write('Diagramme de correlation entre les variables')
-    fig = graph.plot_heatmap(df_merged_cleaned_final)
-    st.pyplot(fig)
     st.markdown("### Distribution du trafic vélo selon la température")
     fig = graph.boxplotTemperature(df_merged)
     st.pyplot(fig)
@@ -367,67 +339,185 @@ if page == pages[2] :
     nous allons donc merger les 3 colonnes pour la suite de l'analyse '''
     st.markdown(conclusionVacances, unsafe_allow_html=True)
 
-
-  
+  with onglet3: #5 seconde
+    st.write('Diagramme de correlation entre les variables')
+    fig = graph.plot_heatmap(df_merged_cleaned_final)
+    st.pyplot(fig)
+    st.write("Graphique de l'importance des variables en nous basant sur RandomForest")
+    model3, X_train, feats = modelisation.modelisationRFBase(df_merged_cleaned_final)
+    fig = graph.plot_feature_importances_RF(model3,X_train,feats)
+    st.pyplot(fig)  
+  start_time = time.time()
+  print("debut page 2 ", time.ctime(start_time)) 
 
 #ce qui s'affiche si l 'option 2 de pages est sélectionné
 if page == pages[3] : 
-
+  start_time = time.time()
+  print("début chargement 3e  page", time.ctime(start_time))  
   sous_menus = ["Modélisation Regressor", "Modélisation Temporelle"]
   sous_menu = st.sidebar.radio("Choisissez un type de modélisation", sous_menus, key='sous_menu')
 
   if sous_menu == sous_menus[0]:
-
+    #utilisation de modèles sur dataframe classique
     st.write("### Modèles Regressor")
+    start_time = time.time()
+    print("début menu0 ", time.ctime(start_time))  
 
-    listCompteur = ['All'] + utils.searchUnique(df_merged_cleaned_final, 'nom_compteur').tolist()
-    nom_compteur_selectionne = st.selectbox('Sélectionnez un nom de compteur', options=listCompteur)
-    st.write('Le compteur choisi est :', nom_compteur_selectionne )
+    #listCompteur = ['All'] + utils.searchUnique(df_merged_cleaned_final, 'nom_compteur').tolist()
+    #nom_compteur_selectionne = st.selectbox('Sélectionnez un nom de compteur', options=listCompteur)
+    #st.write('Le compteur choisi est :', nom_compteur_selectionne )
+    nom_compteur_selectionne = 'All'
 
-    choix = ['XGBRegressor', 'DecisionTreeRegressor','Random Forest Regressor','GradientBoostingRegressor','BaggingRegressor','StackingRegressor', 'AdaBoostRegressor']
+    choix = ['StackingRegressor','XGBRegressor','Random Forest Regressor']
     option = st.selectbox('Choix du modèle', choix)
     st.write('Le modèle choisi est :', option)
-    if option in ['XGBRegressor', 'StackingRegressor']:
-      y_pred, y_test = modelisation.modelisation(df_merged_cleaned_final, option)
-      mae = mean_absolute_error(y_pred, y_test)
-      st.write("MAE Sur les données de test :",mae)
+    #préprocess spécique pour les modèles XGBRegressor et StackingRegressor
+    if option in ['StackingRegressor','XGBRegressor']:
+      start_time = time.time()
+      print(f'debut modelisation {option} : {time.ctime(start_time)}') 
+      clf, X_train, X_test, y_train, y_test  = modelisation.modelisation(df_merged_cleaned_final, option)
+      start_time = time.time()
+      print(f'fin modelisation {option} : {time.ctime(start_time)}')
+      #mae = mean_absolute_error(y_pred, y_test)
+      #st.write("MAE Sur les données de test :",mae)
+    #préprocess spécique pour les modèles Random Forest Regressor','BaggingRegressor', 'DecisionTreeRegressor
     else:
-      X_train, X_test, y_train, y_test = modelisation.modelisation1(df_merged_cleaned_final,nom_compteur_selectionne)
-      clf = modelisation.prediction(option,X_train, y_train)
-      display = st.radio('Que souhaitez-vous montrer ?', ('metrique MAE','score (R²)', 'Nuage de point de prédiction'))
-      if display == 'metrique MAE':
-        trainMae,testMae = modelisation.scores(clf, display, X_train, X_test, y_train, y_test)
-        st.write("Sur les données d'entrainement :",trainMae)
-        st.write("Sur les données de test :",testMae)
-      elif display == 'score (R²)':
-        trainScore,testScore = modelisation.scores(clf, display,X_train, X_test, y_train, y_test)
-        st.write("Sur les données d'entrainement :",trainScore)
-        st.write("Sur les données de test :",testScore)
-      elif display == 'Nuage de point de prédiction':
-        fig = graph.pix_prediction(clf, X_test,y_test)
-        st.pyplot(fig)
+      start_time = time.time()
+      print(f'debut modelisation {option} : {time.ctime(start_time)}') 
+      clf, X_train, X_test, y_train, y_test = modelisation.modelisation1(df_merged_cleaned_final,nom_compteur_selectionne, option)
+      start_time = time.time()
+      print(f'fin modelisation {option} : {time.ctime(start_time)}') 
+    display = st.radio('Que souhaitez-vous montrer ?', ('metrique MAE','score (R²)', 'Nuage de point de prédiction'))
+    if display == 'metrique MAE':
+      start_time = time.time()
+      print(f'debut scores MAE {option} : {time.ctime(start_time)}') 
+      trainMae,testMae = modelisation.scores(clf, display, X_train, X_test, y_train, y_test)
+      st.write("Sur les données d'entrainement :",trainMae)
+      st.write("Sur les données de test :",testMae)
+      start_time = time.time()
+      print(f'fin scores MAE {option} : {time.ctime(start_time)}') 
+    elif display == 'score (R²)':
+      start_time = time.time()
+      print(f'debut scores R² {option} : {time.ctime(start_time)}') 
+      trainScore,testScore = modelisation.scores(clf, display,X_train, X_test, y_train, y_test)
+      st.write("Sur les données d'entrainement :",trainScore)
+      st.write("Sur les données de test :",testScore)
+      start_time = time.time()
+      print(f'fin scores R² {option} : {time.ctime(start_time)}') 
+    elif display == 'Nuage de point de prédiction':
+      start_time = time.time()
+      print(f'debut pix_prediction {option} : {time.ctime(start_time)}') 
+      fig = graph.pix_prediction(clf, X_test,y_test)
+      st.pyplot(fig)
+      start_time = time.time()
+      print(f'debut pix_prediction {option} : {time.ctime(start_time)}') 
+    start_time = time.time()
+    print("fin chargement menu0  page", time.ctime(start_time))  
+    
     
   if sous_menu == sous_menus[1]:
-
+    #prise en compte des specificités des données temporelle
     st.write("### Modèles temporelles")
+    start_time = time.time()
+    print("debut chargement menu1  page", time.ctime(start_time))
 
-    models = modelisation.modelisationT(df_merged_cleaned_final)
-
-    # Sélection du compteur par l'utilisateur
-    listCompteur2 = utils.searchUnique(df_merged_cleaned_final, 'nom_compteur').tolist()
-    compteur_a_predire = st.selectbox('Sélectionnez un nom de compteur', options=listCompteur2)
-    st.write('Le compteur choisi est :', compteur_a_predire )
+    listCompteur2 = ["10 avenue de la Grande Armée SE-NO","16 avenue de la Porte des Ternes E-O","18 quai de l'Hôtel de Ville NO-SE",
+                  "147 avenue d'Italie S-N","27 boulevard Davout N-S"]
+    models = modelisation.modelisationT(df_merged_cleaned_final, listCompteur2)
+    compteur = st.selectbox("Choisissez le nom du compteur", listCompteur2)
+    st.write(f"Le compteur choisi est : {compteur}")
 
     # Extraire les données, former et évaluer le modèle
-    model = models[compteur_a_predire]['model']
-    test_data = models[compteur_a_predire]['test_data']
-    train_data = models[compteur_a_predire]['train_data']
+    model = models[compteur]['model']
+    test_data = models[compteur]['test_data']
+    train_data = models[compteur]['train_data']
   
     test_data, test_predictions, mae = modelisation.predict_and_evaluate(model, train_data,test_data)
     
     # Afficher le MAE
-    st.write(f"Mean Absolute Error (MAE) pour le compteur {compteur_a_predire}: {mae}")
+    st.write(f"Mean Absolute Error (MAE) pour le compteur {compteur}: {mae}")
 
     # Générer et afficher le graphique
-    fig = graph.generate_graph_Tempo(test_data, test_predictions, compteur_a_predire)
+    fig = graph.generate_graph_Tempo(test_data, test_predictions, compteur)
     st.pyplot(fig)
+    start_time = time.time()
+    print("fin chargement menu1  page", time.ctime(start_time))  
+  start_time = time.time()
+  print("fin chargement 3e  page", time.ctime(start_time))  
+
+
+  #ce qui s'affiche si l 'option 2 de pages est sélectionné
+if page == pages[4] : 
+  start_time = time.time()
+  print("début chargement 4e  page", time.ctime(start_time))  
+
+  st.write("### Prédiction")
+
+  titres_onglets4 = ['Prédiction VS réalité', 'Prédiction à 3 jours']
+  onglet10, onglet11= st.tabs(titres_onglets4)
+
+  with onglet10 :
+
+    df_fev = utils.load_data(Config.FILE_PATH + Config.FILE_FEVRIER, ",",0) 
+    date_debut = datetime(2025, 2, 1,0,0)
+    date_limite = datetime(2025, 2, 28, 0, 0).date()
+
+    # Créer deux colonnes pour les boutons
+    col1, col2 = st.columns(2)
+    with col1:
+      date_debut_choisie = st.date_input("Choisissez une date de début", min_value=date_debut, max_value=date_limite) 
+      date_debut_choisie = datetime.combine(date_debut_choisie, datetime.min.time())
+    with col2:
+      date_fin_choisie = st.date_input("Choisissez une date de fin", min_value=date_debut, max_value=date_limite)
+      date_fin_choisie = datetime.combine(date_fin_choisie, datetime.min.time())
+  
+    modèles = ['XGBRegressor','StackingRegressor','Random Forest Regressor', 'Prophet']
+    modelChoisi = st.selectbox('Choix du modèle', modèles)
+    st.write('Le modèle choisi est :', modelChoisi)
+
+    listCompteur2 = ['All',"10 avenue de la Grande Armée SE-NO","16 avenue de la Porte des Ternes E-O","18 quai de l'Hôtel de Ville NO-SE",
+                    "147 avenue d'Italie S-N","27 boulevard Davout N-S"]
+    #models = modelisation.modelisationT(df_merged_cleaned_final, listCompteur2)
+    compteur = st.selectbox("Choisissez le nom du compteur", listCompteur2)
+    st.write(f"Le compteur choisi est : {compteur}")
+    #if modelChoisi == 'Prophet':
+    #  infoModelCompteur = models[compteur]
+    #else:
+    #  infoModelCompteur = {}
+
+    # Créer un bouton "Lancer la prédiction" dans la première colonne
+    if st.button("Lancer la prédiction"):
+        if date_debut_choisie and date_fin_choisie:
+            # Appeler la méthode de prédiction en passant la date et l'heure choisie
+            df_février = modelisation.predictionModel(modelChoisi, df_fev)
+            # Afficher les résultats sous le premier bouton
+            st.subheader("Comparaison entre prédiction et réalité du comptage cycliste en Février 2025")
+            fig = graph.courbePrediction(df_février, compteur, date_debut_choisie,date_fin_choisie)
+            st.pyplot(fig)
+
+        else:
+            st.warning("Veuillez sélectionner une date et une heure avant de lancer la prédiction.")
+
+  with onglet11 :
+    st.subheader("Prédiction à 3J")
+    st.markdown(Config.PREDICTION3J, unsafe_allow_html=True)
+    st.image(Config.EXEMPLE, width=800)
+
+    st.subheader("Lancez une prédiction !")
+    #modèles = ['XGBRegressor','StackingRegressor','Random Forest Regressor', 'Prophet']
+    #modelChoisi = st.selectbox('Choix du modèle', modèles, key='onglet11')
+    listCompteur2 = ['All'] + utils.searchUnique(df_merged_cleaned_final, 'nom_compteur').tolist()
+    compteur = st.selectbox("Choisissez le nom du compteur", listCompteur2, key='onglet11_1')
+    st.write(f"Le compteur choisi est : {compteur}")
+
+    # Créer un bouton "Lancer la prédiction" dans la première colonne
+    if st.button("Lancer la prédiction", key='onglet11_2'):
+        # Appeler la méthode de prédiction en passant la date et l'heure choisie
+        df3J = modelisation.prediction3JModel(modelChoisi, df_merged_cleaned_final,df_vjf_cleaned)
+        # Afficher les résultats sous le premier bouton
+        st.markdown("Prédictions des 3 prochains jours sur l'ensemble des compteurs")
+        fig = graph.courbePrediction3J(df3J, compteur)
+        st.pyplot(fig)
+
+  start_time = time.time()
+  print("fin chargement 4e  page", time.ctime(start_time))  

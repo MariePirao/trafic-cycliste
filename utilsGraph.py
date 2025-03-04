@@ -1,5 +1,6 @@
 #import streamlit as st
 from numpy import int64
+import numpy as np
 import pandas as pd
 #import numpy as np
 import matplotlib.pyplot as plt
@@ -10,7 +11,12 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import folium
 import plotly.express as px
+from sklearn.calibration import LabelEncoder
+from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
 from sklearn.preprocessing import OrdinalEncoder
+from sklearn.linear_model import RANSACRegressor
+import matplotlib.dates as mdates
 from random import choices
 # Pour éviter d'avoir les messages warning
 import warnings
@@ -19,23 +25,45 @@ warnings.filterwarnings('ignore')
     
 def plot_heatmap(df):
 
-    encoder = OrdinalEncoder()
-    df['temperature_encoded'] = encoder.fit_transform(df[['temperature']])
-    df['wind_encoded'] = encoder.fit_transform(df[['wind']])
-    df['precipitation_encoded'] = encoder.fit_transform(df[['precipitation']])
-
     df_work = df.copy()
+
+    #encoder = OrdinalEncoder()
+    le = LabelEncoder()
+    #df_work['temperature_encoded'] = encoder.fit_transform(df_work[['temperature']])
+    #df_work['wind_encoded'] = encoder.fit_transform(df_work[['wind']])
+    #df_work['precipitation_encoded'] = encoder.fit_transform(df_work[['precipitation']])
+    df_work['nom_compteur'] = le.fit_transform(df_work[['nom_compteur']])
 
     columns_to_consider = ['comptage_horaire','heure','num_jour_semaine','num_mois','fait_jour', 
                            'weekend','vacances','neutralise',
                            'Partage','1Sens','latitude','longitude',
-                           'temperature_encoded','precipitation_encoded']
+                           "temperature_2m", "precipitation_mm", "wind_speed"
+                           #'temperature_encoded','precipitation_encoded','wind_encoded'
+                           ,'nom_compteur'
+                           ]
 
-    # Calculer la matrice de corrélation en utilisant les colonnes sélectionnées
+    # Calcul de la matrice de corrélation sur les données selectionnes
     corr_matrix = df_work[columns_to_consider].corr()
 
-    fig, ax = plt.subplots()
-    sns.heatmap(corr_matrix.corr(), ax=ax, annot=True, cmap='coolwarm', fmt=".2f")
+    fig, ax = plt.subplots(figsize=(12, 8))  # Ajuste la taille du graphique
+
+    # Tracer la heatmap avec ajustement de la taille de la police
+    sns.heatmap(
+        corr_matrix.corr(), 
+        ax=ax, 
+        annot=True, 
+        cmap='coolwarm', 
+        fmt=".2f",  # Format des nombres
+        annot_kws={'size': 10},  # Réduire la taille des annotations
+    )
+
+    # Réduire la taille des labels des axes X et Y
+    plt.xticks(fontsize=10)  # Réduire la taille de la police pour les labels de l'axe X
+    plt.yticks(fontsize=10)
+
+    corr_with_target = corr_matrix['comptage_horaire']
+    #print(corr_with_target)
+
     return fig  # Retourne la figure pour Streamlit
 
 def heatmap_isna(df):
@@ -147,16 +175,15 @@ def go_bar_meteo(df):
     precipitation_order = ['Pas de pluie/bruine', 'Pluie modérée', 'Fortes averses']
 
     # Créer une figure avec plusieurs sous-graphiques
-    fig = sp.make_subplots(rows = 1, cols = 3, subplot_titles=["Impact des Précipitations", "Impact du Vent", "Impact de la Température"])
+    fig = sp.make_subplots(rows = 1, cols = 3, subplot_titles=[" Précipitations", "Vent", "Température"])
 
     # Ajouter les barres pour chaque catégorie
-    fig.add_trace(go.Bar(x=df_precipitation['precipitation'], y=df_precipitation['comptage_horaire'], marker_color='blue', name='moyenne des passages selon les précipitations'), row=1, col=1)
-    fig.add_trace(go.Bar(x=df_wind['wind'], y=df_wind['comptage_horaire'], marker_color='grey', name='moyenne des passages selon le vent'),row=1, col=2)
-    fig.add_trace(go.Bar(x=df_temperature['temperature'], y=df_temperature['comptage_horaire'], marker_color='red', name='moyenne des passages selon la température'), row=1, col=3)
+    fig.add_trace(go.Bar(x=df_precipitation['precipitation'], y=df_precipitation['comptage_horaire'], marker_color='blue', name='precipitation'), row=1, col=1)
+    fig.add_trace(go.Bar(x=df_wind['wind'], y=df_wind['comptage_horaire'], marker_color='grey', name='wind'),row=1, col=2)
+    fig.add_trace(go.Bar(x=df_temperature['temperature'], y=df_temperature['comptage_horaire'], marker_color='red', name='temperature'), row=1, col=3)
 
     # Mettre à jour la mise en page et titre
     fig.update_layout(height=400, width=1100,
-                      title="Moyenne des passages de vélos en Fonction des Conditions Météorologiques",
                       xaxis1=dict(categoryorder='array', categoryarray=precipitation_order),  # Définit l'ordre des catégories pour 'precipitation'
                       xaxis2=dict(categoryorder='array', categoryarray=wind_order),  # Définit l'ordre des catégories pour 'wind'
                       xaxis3=dict(categoryorder='array', categoryarray=temperature_order)  # Définit l'ordre des catégories pour 'temperature'
@@ -197,7 +224,7 @@ def top10Flop10(df):
     plt.ylabel('Flop 10 des compteurs de vélo')
     return fig, fig1
 
-def dayNight(df):   # a corriger
+def dayNight(df):  
 
     # Filtrer les données en fonction de 'is_day'
     all_hours = pd.DataFrame({'heure': range(24)})
@@ -223,7 +250,6 @@ def dayNight(df):   # a corriger
     fig.add_trace(go.Scatter(x=df_night_avg['heure'], y=df_night_avg['comptage_horaire'], mode='lines', name='Nuit', line=dict(color='blue')))
     # Mettre à jour les options du graphique
     fig.update_layout(
-        title="Moyenne des Passages de Vélos par Heure - Jour vs Nuit",
         xaxis_title="Heure",
         yaxis_title="Nombre Moyen de Passages",
         xaxis=dict(tickmode='linear', tick0=0, dtick=1),  # Afficher toutes les heures
@@ -286,8 +312,6 @@ def generate_folium_map(df,map_filename):
 def boxplotTemperature(df):
     df3 = df[df["nom_compteur"]=="Totem 73 boulevard de Sébastopol S-N"]
     df2 = df3[['comptage_horaire', 'date_heure_comptage', 'temperature_2m']].copy()
-    #df2['date_heure_comptage'] = pd.to_datetime(df2['date_heure_comptage'], errors='coerce')
-    #df2['heure'] = df2['].dt.hour']
     bins = [-20, 0, 5, 10, 15, 20, 25, 30, 35, 60]
     labels = ["<0°C", "0-5°C", "5-10°C", "10-15°C", "15-20°C", "20-25°C", "25-30°C", "30-35°C", ">35°C"]
     df2.loc[:, 'Température Catégorie'] = pd.cut(df2['temperature_2m'], bins=bins, labels=labels)
@@ -352,12 +376,12 @@ def plot_abherrante(df):
 def pix_prediction(clf, X_test,y_test):
     y_pred_test = clf.predict(X_test)
  
-    plt.figure(figsize=(10, 8))
+    plt.figure(figsize=(6, 6))
     plt.scatter(y_pred_test, y_test, color='#4529de')
     plt.plot((y_test.min(), y_test.max()), (y_test.min(), y_test.max()), color='#26dbe0')
-    plt.title("\nNuage de points sur la prédiction des passages vélo \n", fontsize=20)
-    plt.xlabel("prediction",rotation=0, labelpad=20, fontsize=20)
-    plt.ylabel("vrai valeur", rotation=90, labelpad=20, fontsize=20)
+    plt.title("\nNuage de points sur la prédiction des passages vélo \n", fontsize=10)
+    plt.xlabel("prediction",rotation=0, labelpad=15, fontsize=10)
+    plt.ylabel("vrai valeur", rotation=90, labelpad=15, fontsize=10)
     return plt
 
 
@@ -518,3 +542,99 @@ def generate_graph_Tempo(test_data, test_predictions, compteur):
     ax.legend()
 
     return fig
+
+
+def plot_feature_importances_RF(model3,X_train,feats):
+
+    importances = model3.feature_importances_
+    # definition du seuil d'importance et selection des features
+    threshold = 0.015
+    selected_features = feats.columns[importances > threshold]
+    X_train_selected = X_train[selected_features]
+
+    selected_importances = importances[feats.columns.isin(selected_features)]
+
+    # Créer la figure pour les importances des variables
+    fig, ax = plt.subplots(figsize=(8, 10))
+    ax.bar(X_train_selected.columns, selected_importances)
+    ax.set_xlabel("Importance")
+    ax.set_ylabel("Feature")
+    ax.tick_params(axis='x', rotation=90) 
+    plt.tight_layout()  
+
+    return fig
+
+
+def filter_data(period,df):
+    '''Ce graph montre les moyennes de passages de vélos selon la températures et les heures'''
+
+    df_copy= df.copy()
+
+    df_work = df_copy.groupby(["date_heure_comptage"], as_index=False).agg({"comptage_horaire": "mean","num_jour_semaine": "first", "temperature_2m": "first","heure": "first"})
+
+    # Filtrage des données selon la période
+    if period == "semaine":
+        filtered_df = df_work[df_work["num_jour_semaine"].isin([0, 1, 2, 3, 4])]
+    else:
+        filtered_df = df_work[df_work["num_jour_semaine"].isin([5, 6])]
+
+    # Créer un graphique avec Plotly Express
+    fig = px.scatter(filtered_df, x="heure", y='comptage_horaire', color='temperature_2m',color_continuous_scale='ylorrd')
+    fig.update_layout(width=2000, height=700)
+    
+    return fig
+
+
+
+def courbePrediction(df_fevrier, compteur, date_debut_choisie,date_fin_choisie):
+
+   
+    df_fev_avec_pred = df_fevrier.copy()
+
+    df_fev_avec_pred["date_heure_comptage"] = pd.to_datetime(df_fev_avec_pred["date_heure_comptage"])
+    df_fev_avec_pred = df_fev_avec_pred[(df_fev_avec_pred["date_heure_comptage"] >= date_debut_choisie) &
+                                        (df_fev_avec_pred["date_heure_comptage"] <= date_fin_choisie)]
+    
+
+    
+    fig, ax = plt.subplots(figsize=(10, 5))
+
+    if compteur == 'All':
+        df_moyenne = df_fev_avec_pred.groupby("date_heure_comptage")[["comptage_horaire", "predictions_comptage_horaire"]].mean().reset_index()
+        ax.plot(df_moyenne["date_heure_comptage"], df_moyenne["comptage_horaire"], label="comptage réel", color="blue", alpha=0.7)
+        ax.plot(df_moyenne["date_heure_comptage"], df_moyenne["predictions_comptage_horaire"], label="Prédiction", color="red", alpha=0.7)
+
+    else:
+        #copy et filtrage du dataframe qui continent les prédictions et les résultats réels
+        df_fev_avec_pred = df_fev_avec_pred[df_fevrier["nom_compteur"] == compteur]
+        ax.plot(df_fev_avec_pred["date_heure_comptage"], df_fev_avec_pred["comptage_horaire"], label="comptage réel", color="blue", alpha=0.7)
+        ax.plot(df_fev_avec_pred["date_heure_comptage"], df_fev_avec_pred["predictions_comptage_horaire"], label="Prédiction", color="red", alpha=0.7)
+       
+    ax.set_xlabel("date_heure_comptage", fontsize=12)
+    ax.set_ylabel("Comptage horaire / Prédiction", fontsize=12)
+    ax.legend()
+    ax.grid(True)
+    plt.xticks(rotation=45)
+    #plt.tight_layout()
+
+    return fig
+
+def courbePrediction3J(df3J, compteur):
+
+    plt.figure(figsize=(25, 6))
+
+    if compteur == 'All':
+        df_moyenne_semaine = df3J.groupby("date_heure_comptage")["predictions_comptage_horaire"].mean().reset_index()
+        plt.plot(df_moyenne_semaine["date_heure_comptage"], df_moyenne_semaine["predictions_comptage_horaire"], label="Prédiction", color="red", alpha=0.7)
+        plt.xlim(df_moyenne_semaine["date_heure_comptage"].min(), df_moyenne_semaine["date_heure_comptage"].max())
+    else:
+        df3JCompteur = df3J[df3J["nom_compteur"] == compteur]
+        plt.plot(df3JCompteur["date_heure_comptage"], df3JCompteur["predictions_comptage_horaire"], label="Prédiction", color="red", alpha=0.7)
+        plt.xlim(df3JCompteur["date_heure_comptage"].min(), df3JCompteur["date_heure_comptage"].max())
+    plt.xlabel("Date et heure de comptage", fontsize=12)
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%d/%m/%Y %Hh00'))
+    plt.ylabel("Comptage horaire / Prédiction", fontsize=12)
+    plt.legend()
+    plt.grid(True)
+    #plt.tight_layout()
+    return plt

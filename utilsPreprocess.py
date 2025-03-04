@@ -94,8 +94,10 @@ def addline(df):
     return df_final
 
 
-@st.cache_data
 def preprocess_cyclisme(df):
+
+    start_time = time.time()
+    print("début preprocess_cyclisme:", time.ctime(start_time)) 
 
     df_work = df.copy()
     #drop des colonnes non utilisé
@@ -144,6 +146,9 @@ def preprocess_cyclisme(df):
     df_work.sort_values(by=["date_heure_comptage","nom_compteur"], ascending=True, inplace=True)
     df_work.reset_index(drop=True, inplace=True)
 
+    start_time = time.time()
+    print("fin preprocess_cyclisme:", time.ctime(start_time)) 
+
     return df_work
 
 def preprocess_meteo(df):
@@ -178,30 +183,14 @@ def preprocess_vacancesferie(df_v, df_jf):
     #df_jf['time'] = pd.to_datetime(df_jf['date'], utc=True).dt.tz_convert(None)
     df_jf['date'] = pd.to_datetime(df_jf['date'])
     #on ne selectionne que les dates qui correspondent a notre jeu de données
-    df_jf = df_jf[(df_jf['date'] >= '2024-01-01') & (df_jf['date'] <= '2025-02-01')]
+    df_jf = df_jf[(df_jf['date'] >= '2024-01-01') & (df_jf['date'] <= '2025-03-31')]
     # Supprimer la colonne 'zone'
     df_jf = df_jf.drop(columns=['zone'])
-
-    # On ajoute les samedi et dimanche
-    #all_dates = pd.date_range(start=df_jf['time'].min(), end=df_jf['time'].max() )
-    #weekends = all_dates[all_dates.weekday.isin([5, 6])]  # 5 = samedi, 6 = dimanche
-    #weekends_df = pd.DataFrame({
-    #    'date': weekends.strftime('%Y-%m-%d'),
-    #    'annee': weekends.year,
-    #    'nom_jour_ferie': weekends.day_name(),  # 'Samedi' ou 'Dimanche'
-    #    'time': weekends})
-    #on ne créé pas de doublon si la date est déjà un JF on n'ajoute pas samedi et dimanche
-    #weekends_df = weekends_df[~weekends_df['date'].isin(df_jf['date'].astype(str))]
-
-    #   3. Ajouter les week-ends au DataFrame original
-    #df_jf = pd.concat([df_jf, weekends_df], ignore_index=True)
-    #df_jf = df_jf.sort_values(by='time').reset_index(drop=True)
 
     # creation d'une colonne en datatime
     df_v['date'] = pd.to_datetime(df_v['date'])
     #suppression des lignes hors période
-    #df_v = df_v.dropna(axis = 0, how = 'all', subset = ['nom_vacances'])
-    df_filtered = df_v[(df_v['date'] >= '2024-01-01') & (df_v['date'] <= '2025-02-01')]
+    df_filtered = df_v[(df_v['date'] >= '2024-01-01') & (df_v['date'] <= '2025-03-31')]
 
     #creation d'un dataframe commun jour férier et congé
     df_jv = df_filtered
@@ -239,9 +228,9 @@ def preprocess_photo(df):
     df.drop(columns=['Separe'], inplace=True)
     return df
 
-def correctionDataviz(df):
+def correctionDataviz(df_merged_cleaned):
     """Dernier traitement sur le dataframe avant la modélisation"""
-    df_work = df.copy()
+    df_work = df_merged_cleaned.copy()
     #selon la recommandation concernant le graph sur les vacances nous allons utiliser qu'une colonne vacances
     df_work['vacances'] = df_work[['vacances_zone_a', 'vacances_zone_b', 'vacances_zone_c']].apply(lambda x: 1 if x.max() == 1 else 0, axis=1)
     # Créer une nouvelle colonne 'weekend' où 1 correspond au weekend (samedi ou dimanche)

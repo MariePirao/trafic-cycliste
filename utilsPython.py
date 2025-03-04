@@ -1,18 +1,40 @@
 import glob
 import pandas as pd
-import streamlit as st
 # Pour éviter d'avoir les messages warning
+from bs4 import BeautifulSoup
+from datetime import datetime, timedelta
+import requests
 import warnings
 import os
 warnings.filterwarnings('ignore')
 
 
-@st.cache_data
 def load_data(file_path, separator, numheader):
     return pd.read_csv(file_path, sep=separator, header=numheader)
 
 def create_data(df, file_path):
     df.to_csv(file_path + 'dataframeFinal.csv')
+
+def create_data3J(df):
+    df.to_csv('Save3J.csv')
+
+
+def informationDF(df):
+    # Extraire les informations sur chaque colonne (describe() que pour colonne int)
+    int_columns = df.select_dtypes(include=['int64']).columns
+    info_dict = {
+      'Valeurs non-null': df.notnull().sum(),
+      'Dtype': df.dtypes,
+      'Valeur unique': [df[col].nunique(dropna=False) for col in df.columns],
+      'Min': [df[col].min() if col in int_columns else '' for col in df.columns],
+      'Max': [df[col].max() if col in int_columns else '' for col in df.columns],
+      'Médiane': [df[col].median() if col in int_columns else '' for col in df.columns],
+      'Moyenne': [df[col].mean() if col in int_columns else '' for col in df.columns]
+    }
+
+    info_df = pd.DataFrame(info_dict)
+    info_dict_aff = info_df.applymap(str)
+    return info_dict_aff
 
 def searchUnique(df, attribut):
     return df[attribut].unique()
@@ -75,4 +97,106 @@ def merge(df_cleaned,df_m,df_jv, df_p, df_ir):
 
     return df_result
 
+def translate_month(date_string):
+    month_translation = {
+    'janvier': 'January', 'février': 'February', 'mars': 'March', 'avril': 'April', 'mai': 'May',
+    'juin': 'June', 'juillet': 'July', 'août': 'August', 'septembre': 'September', 'octobre': 'October',
+    'novembre': 'November', 'décembre': 'December'}
+    for fr_month, en_month in month_translation.items():
+        date_string = date_string.replace(fr_month, en_month)
+    return date_string
 
+def meteoSearch():
+        
+        url_meteo = 'https://www.meteo-paris.com/meteo-8-jours/paris-75000'
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36'}
+        res = requests.get(url_meteo, headers=headers)
+        soup = BeautifulSoup(res.text, "html.parser")
+        rows_to_extract = { 1: "dates", 2: "heures",4: "temperatures",5: "précipitation",7: "vent"}
+        data = {}
+        for row_num, var_name in rows_to_extract.items():
+            tr = soup.select(f'tbody tr:nth-of-type({row_num})')
+            if tr:
+                tds = tr[0].find_all('td')
+                data[var_name] = [td.get_text(strip=True) for td in tds]
+        date_index = 0
+        dates_expanded = []
+        for heure in data["heures"]:
+            if heure == "00h":
+                date_index += 1
+            dates_expanded.append(data["dates"][date_index])
+        meteo = pd.DataFrame({"date": dates_expanded,"heure": data["heures"],"temperature_2m": data["temperatures"],"precipitation_mm": data["précipitation"],"wind_speed": data["vent"]})
+        meteo = meteo[meteo["temperature_2m"] != ""]
+        meteo['temperature_2m'] = meteo['temperature_2m'].str.replace('°', '')
+        meteo['precipitation_mm'] = meteo['precipitation_mm'].str.replace(' mm', '')
+        meteo['wind_speed'] = meteo['wind_speed'].str.extract('(\\d+)')
+        meteo['date'] = meteo['date'] + ' 2025'
+        meteo['heure'] = meteo['heure'].str.replace("h", "", regex=False)
+        meteo['Date_Heure'] = meteo['date'] + ' ' + meteo['heure'] + ":00"
+        meteo['Date_Heure'] = meteo['Date_Heure'].apply(lambda x: ' '.join([x.split()[1].zfill(2), x.split()[2], x.split()[3]]) + ' ' + x.split()[4])
+        meteo['Date_Heure'] = meteo['Date_Heure'].apply(translate_month)
+        meteo['Date_Heure'] = pd.to_datetime(meteo['Date_Heure'], format='%d %B %Y %H:%M', errors='coerce')
+        meteo['time_diff'] = meteo['Date_Heure'].diff()
+        meteo = meteo[(meteo['time_diff'] == pd.Timedelta(hours=1)) | (meteo['time_diff'].isna())]
+        meteo = meteo.drop(columns=["date", "heure","time_diff"])
+
+        return meteo
+
+def get_fait_jour(date):
+    """
+    Détermine si la date correspond à un jour en fonction de l'heure et de la saison
+    (été ou hiver) en France.
+    """
+    mois = date.month
+    heure = date.hour
+    
+    if mois >= 4 and mois <= 10: 
+        lever_soleil = 6 
+        coucher_soleil = 21 
+    else: 
+        # En hiver, le soleil se lève vers 8h00 et se couche vers 17h00
+        lever_soleil = 7  
+        coucher_soleil = 18  
+
+    if lever_soleil <= heure < coucher_soleil:
+        return 1  
+    else:
+        return 0 
+
+def createDataframe(meteo, df_work, df_work_vac):
+
+    current_time = datetime.now()
+    #différence d'heure
+    next_hour = (current_time + timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
+    # fin de la période J_3
+    date_range = pd.date_range(next_hour, current_time + timedelta(days=3), freq="h")
+    d_date_range = pd.DataFrame(date_range, columns=["date_heure_comptage"])
+
+    #recupération des compteurs et des informations statiques
+    all_identifiants = df_work[['nom_compteur', 'latitude', 'longitude',"1Sens","Partage"]].drop_duplicates(subset=['nom_compteur'])
+
+    # référence croisé pour avoir toutes les heurs pendant 3 J sur tous les compteurs
+    full_df = d_date_range.merge(all_identifiants, how="cross")
+
+    full_df["heure"] = full_df["date_heure_comptage"].dt.hour
+    full_df["num_mois"] = full_df["date_heure_comptage"].dt.month
+    full_df["num_jour_semaine"] = full_df["date_heure_comptage"].dt.dayofweek
+    full_df["année"] = full_df["date_heure_comptage"].dt.year
+    full_df["neutralise"] = 0
+    full_df['jour_mois_annee'] = full_df['date_heure_comptage'].dt.strftime('%Y-%m-%d')
+    full_df['jour_mois_annee'] = pd.to_datetime(full_df['jour_mois_annee'])
+
+    full_df["fait_jour"] = full_df["date_heure_comptage"].apply(get_fait_jour)
+
+
+    df_work_vac = df_work_vac[["date","vacances_zone_c"]]
+    df_work_vac['date'] = pd.to_datetime(df_work_vac['date'])
+    df_work_vac = df_work_vac.rename(columns={"vacances_zone_c": "vacances"})
+    df_work_vac['vacances'] = df_work_vac['vacances'].astype(int)
+
+    full_df = pd.merge(full_df, meteo, left_on='date_heure_comptage', right_on='Date_Heure', how='left')
+    full_df = pd.merge(full_df, df_work_vac, left_on='jour_mois_annee', right_on='date', how='left')
+    full_df = full_df.drop(columns=["Date_Heure", "date","jour_mois_annee"])
+    full_df["weekend"] = full_df["num_jour_semaine"].apply(lambda x: 1 if x >= 5 else 0)
+
+    return full_df
