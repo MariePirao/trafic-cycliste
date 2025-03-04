@@ -101,6 +101,7 @@ st.image(Config.IMAGE, width=400)
 
 #titre et sommaire
 st.title("Trafic cycliste à PARIS")
+
 st.sidebar.title("Sommaire")
 pages=["Présentation du sujet","Exploration", "DataVizualization", "Modélisation","Prédiction"]
 page=st.sidebar.radio("Aller vers", pages, key='menu_principal')
