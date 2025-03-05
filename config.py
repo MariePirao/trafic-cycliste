@@ -35,6 +35,9 @@ class Config:
     OBSERVATION_TRAVAUX = '''
       ????'''
     
+    ABERRANTE = '''On voit très nettement une valeur extrême ou même abherrante. 
+    Ce qui nous incite a analyser ce compteur ce jour-là'''
+    
     CONCLUSION_REPARTITION = '''Nous observons que la totalité des relevé de compteurs concerne l'année 2024/2025 avec une exception pour un relevé sur 2022.<br>
     Nous décidons d'exclure l'énnée 2022'''
     CONCLUSION_GA = '''Nous pouvons déduire que la borne "7 avenue de la Grande Armée NO-SE" est correcte. <br>Par contre la borne 10 avenue de la Grande Armée [Bike IN]

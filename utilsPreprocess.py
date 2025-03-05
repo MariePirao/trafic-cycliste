@@ -1,4 +1,3 @@
-import time
 import pandas as pd
 # Pour éviter d'avoir les messages warning
 import warnings

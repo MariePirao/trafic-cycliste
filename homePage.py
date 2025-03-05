@@ -263,9 +263,7 @@ if page == pages[1] : #4 seconde
     st.subheader("Distribution de la variable comptage_horaire des vélos")
     fig = graph.boxplot(df_merged['comptage_horaire'])
     st.pyplot(fig)
-    abherrante0 = '''On voit très nettement une valeur extrême ou même abherrante. 
-    Ce qui nous incite a analyser ce compteur ce jour-là'''
-    st.markdown(abherrante0, unsafe_allow_html=True)
+    st.markdown(Config.ABERRANTE, unsafe_allow_html=True)
 
     fig1 = graph.plot_abherrante(df_merged)
     st.plotly_chart(fig1, key="graph_abherrante_1")

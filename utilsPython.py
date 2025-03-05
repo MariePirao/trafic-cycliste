@@ -110,6 +110,9 @@ def translate_month(date_string):
     return date_string
 
 def meteoSearch():
+        """
+        Permet de faire du webScraping sur le site de la météo pour récupérer les informations pour la prédiction
+        """
         
         url_meteo = Config.URL_METEO
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36'}

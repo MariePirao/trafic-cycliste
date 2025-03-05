@@ -13,6 +13,9 @@ warnings.filterwarnings('ignore')
 
     
 def plot_heatmap(df):
+    '''
+    Affichage de la matri de corrélation
+    '''
 
     df_work = df.copy()
 
