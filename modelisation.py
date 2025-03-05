@@ -321,10 +321,8 @@ def modelisationT(df,compteurs):
     df_work = df.copy()
     df_work.sort_values(by=["date_heure_comptage","nom_compteur"], ascending=True, inplace=True)
 
-    df_work = df_work[['nom_compteur',    # va nous permettre de selectionner le compteur
-                   'num_jour_semaine', 'num_mois', 'fait_jour', 'weekend', 'vacances', 'neutralise',  #0,1 et  #0,1
-                   'temperature_2m', 'precipitation_mm', 'wind_speed', 'heure', 'année', "date_heure_comptage",
-                   "comptage_horaire"]]
+    df_work = df_work[['nom_compteur','num_jour_semaine', 'num_mois', 'fait_jour', 'weekend', 'vacances', 'neutralise',
+                   'temperature_2m', 'precipitation_mm', 'wind_speed', 'heure', 'année', "date_heure_comptage","comptage_horaire"]]
     
     models = {}
     #compteurs = df_work['nom_compteur'].unique()
