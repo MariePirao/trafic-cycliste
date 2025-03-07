@@ -173,12 +173,21 @@ def sns_scatter_meteo(df):
     df2 = df2[df2['comptage_horaire'] >= 500]
 
     fig = plt.figure(figsize=(20, 10))
-    scatter = sns.scatterplot(data=df2, x='temperature_2m', y='wind_speed',  hue='comptage_horaire', size='comptage_horaire', sizes=(50, 200),
+    #scatter
+    sns.scatterplot(data=df2, x='temperature_2m', y='wind_speed',  hue='comptage_horaire', size='comptage_horaire', sizes=(50, 200),
                     palette='coolwarm', style='precipitation', markers=['o', 's', 'D'], alpha=0.8)
     plt.title("Nombre de passages de vélos selon la météo")
     plt.xlabel("Température (°C)")
     plt.ylabel("Vitesse du vent (km/h)")
     plt.legend()
+    return fig
+
+def sns_scatter_vacances(df):
+
+    fig = plt.figure(figsize=(6, 6))
+    fig = sns.catplot(y="comptage_horaire", x="vacances_zone_c", kind="box", data = df)
+    plt.xlabel('vacances Paris')
+    plt.ylim(0, 300)
     return fig
 
 def top10Flop10(df):
@@ -534,7 +543,6 @@ def plot_feature_importances_RF(model3,X_train,feats):
     # Créer la figure pour les importances des variables
     fig, ax = plt.subplots(figsize=(8, 10))
     ax.bar(X_train_selected.columns, selected_importances)
-    ax.set_xlabel("Importance")
     ax.set_ylabel("Feature")
     ax.tick_params(axis='x', rotation=90) 
     plt.tight_layout()  

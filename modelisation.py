@@ -53,16 +53,12 @@ def modelisationRFBase(df_merged_cleaned_final):
 
 
 @st.cache_data
-def modelisationRFR(df, compteur , option):
+def modelisationRFR(df):
   ''' Modelisation pour le modèle RFR
     '''
   df_work =df.copy()
   df_work.sort_values(by=["date_heure_comptage","nom_compteur"], ascending=True, inplace=True)
 
-  #on filtre directement sur le compteur s'il est renseigné 
-  if(compteur != 'All'):
-    df_work =df_work[df_work['nom_compteur'] == compteur]
-  
   y = df_work['comptage_horaire']
 
   X_cat = df_work[['nom_compteur','num_jour_semaine', 'num_mois', 'fait_jour', 
@@ -184,50 +180,6 @@ def modelisation(df, classifier):
 
 '''TOUTES LES FONCTIONS POUR MODELE TEMPOREL'''
 
-def get_temperature_for_date(date, df):
-    """
-    Retourne la temperature en prenant le mode de la précipitation pour la même heure 
-    au meme mois en 2024.
-    """
-    df_train = df[df['ds'] < date]  
-    df_train_same_hour = df_train[df_train['ds'].dt.hour == date.hour]  
-    return df_train_same_hour['temperature_2m'].mean()
-
-def get_precipitation_for_date(date, df):
-    """
-    Retourne la précipitation en prenant le mode de la précipitation pour la même heure 
-    au meme mois en 2024.
-    """
-    df_train = df[df['ds'] < date] 
-    df_train_same_hour = df_train[df_train['ds'].dt.hour == date.hour]  
-    return df_train_same_hour['precipitation_mm'].mean()
-
-
-def get_wind_for_date(date, df):
-    """
-    Retourne la vitesse du wind en prenant le mode de la vitesse du wind pour la même heure 
-    au mois passé en 2024.
-    """
-    df_train = df[df['ds'] < date]  
-    df_train_same_hour = df_train[df_train['ds'].dt.hour == date.hour]  
-    return df_train_same_hour['wind_speed'].mean()
-
-def get_vacances_for_date(date, df):
-    """
-    Retourne 1 si la date est une date de vacances en 2024, sinon 0.
-    """
-    df_2024 = df[(df['ds'].dt.year == 2024) & (df['ds'].dt.month == date.month) & (df['ds'].dt.day == date.day)]
-    return 1 if not df_2024.empty and df_2024['vacances'].iloc[0] == 1 else 0
-
-def get_neutralise_for_date(date, df):
-    """
-    Génère un mode aléatoire pour la présence de neutralise en fonction des proportions 
-    présentes dans l'ensemble d'entraînement.
-    """
-    neutralise_proportion = df['neutralise'].mean()  
-    return choices([0, 1], [1 - neutralise_proportion, neutralise_proportion])[0]
-
-
 def modelisation_per_compteur(df, compteur):
     """
     Fonction qui entraîne un modèle Prophet pour un compteur spécifique.
@@ -241,28 +193,21 @@ def modelisation_per_compteur(df, compteur):
     train_size = int(len(df_compteur) * 0.8)
     train_data = df_compteur[:train_size]
     test_data = df_compteur[train_size:]
-    
-    train_data['num_mois_sin'] = np.sin(2 * np.pi * train_data['ds'].dt.month / 12)
-    train_data['num_mois_cos'] = np.cos(2 * np.pi * train_data['ds'].dt.month / 12)
-    test_data['num_mois_sin'] = np.sin(2 * np.pi * test_data['ds'].dt.month / 12)
-    test_data['num_mois_cos'] = np.cos(2 * np.pi * test_data['ds'].dt.month / 12)
-    
-    train_data['num_jour_semaine_sin'] = np.sin(2 * np.pi * train_data['ds'].dt.weekday / 7)
-    train_data['num_jour_semaine_cos'] = np.cos(2 * np.pi * train_data['ds'].dt.weekday / 7)
-    test_data['num_jour_semaine_sin'] = np.sin(2 * np.pi * test_data['ds'].dt.weekday / 7)
-    test_data['num_jour_semaine_cos'] = np.cos(2 * np.pi * test_data['ds'].dt.weekday / 7)
+
+    train_data = utils.encode_cyclic_prophet(train_data,"num_mois",train_data['ds'].dt.month)
+    test_data = utils.encode_cyclic_prophet(test_data,"num_mois",train_data['ds'].dt.month)
+    train_data = utils.encode_cyclic_prophet(train_data,"num_jour_semaine",train_data['ds'].dt.weekday)
+    test_data = utils.encode_cyclic_prophet(test_data,"num_jour_semaine",test_data['ds'].dt.weekday)
 
     # Créer le modèle Prophet
-    model = Prophet( 
-                    changepoint_prior_scale=0.5,   # cross validation = 0.001  moi : 0.5
+    model = Prophet( changepoint_prior_scale=0.5,   # cross validation = 0.001  moi : 0.5
                     seasonality_prior_scale=1.0,   # cross validation = 100.0   moi : 1.0
                     holidays_prior_scale=10.0,      #  cross validation = 0.1  moi : 10.0
-                    seasonality_mode='multiplicative',    # Mode de saisonnalité ('additive' ou 'multiplicative')
-                    yearly_seasonality=False,        
-                    weekly_seasonality=True,        
-                    daily_seasonality=True,      
+                    seasonality_mode='multiplicative', 
+                    yearly_seasonality=False, weekly_seasonality=True, daily_seasonality=True,      
                     changepoint_range=0.80        # cross validation = 0.1  moi 0.80 
     )
+    model.add_country_holidays(country_name='FR')
 
     # Ajouter les régressions externes
     model.add_regressor('precipitation_mm')
@@ -280,43 +225,27 @@ def modelisation_per_compteur(df, compteur):
     # Entraîner le modèle
     model.fit(train_data)
 
-    #dump(model, 'model_BR.joblib') il va falloir enregistré le model sur le compteur
-
     return model, train_data, test_data
 
-def predict_and_evaluate(model, df, test_data):
+def predict_and_evaluate(model, test_data):
     """
-    Effectue les prédictions pour un compteur donné model : model entrainé sur le compteur, df dataframe filtré que le compteur
+    Effectue les prédictions et l'évaluation pour un compteur donné avec model entrainé
     """
     #on recupère que les dates de la partie test pour faire la prédiction
-    future = test_data[['ds']].copy() 
-    
-    # Ajouter les colonnes de régressions externes pour les dates futures
-    future['precipitation_mm'] = future['ds'].apply(lambda x: get_precipitation_for_date(x, df))
-    future['wind_speed'] = future['ds'].apply(lambda x: get_wind_for_date(x, df))
-    future['vacances'] = future['ds'].apply(lambda x: get_vacances_for_date(x, df))
-    future['weekend'] = future['ds'].apply(lambda x: 1 if x.weekday() >= 5 else 0)
-    future['fait_jour'] = future['ds'].apply(utils.get_fait_jour)
-    future['heure'] = future['ds'].dt.hour
-    future['num_mois'] = future['ds'].dt.month
-    future['num_mois_sin'] = np.sin(2 * np.pi * future['ds'].dt.month / 12)
-    future['num_mois_cos'] = np.cos(2 * np.pi * future['ds'].dt.month / 12)
-    future['num_jour_semaine_sin'] = np.sin(2 * np.pi * future['ds'].dt.weekday / 7)
-    future['num_jour_semaine_cos'] = np.cos(2 * np.pi * future['ds'].dt.weekday / 7)
-
+    future = test_data[['ds','precipitation_mm','wind_speed','vacances','weekend','fait_jour','heure','num_mois']].copy() 
+    future = utils.encode_cyclic_prophet(future,"num_mois",future['ds'].dt.month)
+    future = utils.encode_cyclic_prophet(future,"num_jour_semaine",future['ds'].dt.weekday)
 
     # Prédictions
     forecast = model.predict(future)
-    # Prédictions pour la période de test
     test_predictions = forecast[forecast['ds'].isin(test_data['ds'])]
-
+ 
     # Calcul du score (Mean Absolute Error)
     mae = mean_absolute_error(test_data['y'], test_predictions['yhat'])
 
     return test_data, test_predictions, mae
 
-@st.cache_data
-def modelisationT(df,compteurs):
+def modelisationProphet(df,compteurs):
     
     df_work = df.copy()
     df_work.sort_values(by=["date_heure_comptage","nom_compteur"], ascending=True, inplace=True)
@@ -337,14 +266,13 @@ def modelisationT(df,compteurs):
 
 '''FONCTION POUR PREDICTION SUR FEVRIER'''
 
-def predictionModel(classifier):
+def predictionModel(classifier, modelProphetCompteur, compteur):
 
     df_fevrier = utils.load_data(Config.FILE_PATH + Config.FILE_FEVRIER, ",",0) 
     df_fevrier.sort_values(by=["date_heure_comptage","nom_compteur"], ascending=True, inplace=True)
     df_fevrier.reset_index(drop=True, inplace=True)
 
-    # Exemple de logique de prédiction
-    # Remplacez cela par votre logique réelle de prédiction
+    # 
     if classifier == 'XGBRegressor':
         #récupération du model
         modelXGB = load('model_XGB.joblib')
@@ -387,9 +315,6 @@ def predictionModel(classifier):
         encoderW = OrdinalEncoder(categories=[['Pas de vent', 'Vent modérée', 'vent', 'grand vent']])
         df_fevrier['wind_encoded'] = encoderW.fit_transform(df_fevrier[['wind']])
 
-        #X_cat1 = df_work[['nom_compteur','num_jour_semaine', 'fait_jour', 
-        #                    'vacances', 'neutralise', 'precipitation', 'wind','temperature', 'Partage', '1Sens', 'latitude', 'heure','année']]
-
         df_fevrier_cat = pd.get_dummies(df_fevrier[['nom_compteur','num_jour_semaine', 'fait_jour', 
                             'vacances', 'neutralise', 'precipitation', 'wind','temperature', 'Partage', '1Sens', 'latitude', 'heure','année']], drop_first=True)
 
@@ -401,12 +326,28 @@ def predictionModel(classifier):
         df_fevrier['predictions_comptage_horaire'] = y_pred
 
     elif classifier == 'Prophet':
-        df_fevrier = df_fevrier        
+
+
+        df_fevrier_copy = df_fevrier[df_fevrier['nom_compteur'] == compteur].copy()
+        df_fevrier_copy['ds'] = pd.to_datetime(df_fevrier_copy["date_heure_comptage"])
+        df_fevrier_copy.sort_values(by=["ds"], ascending=True, inplace=True)
+        df_fevrier_copy.reset_index(drop=True, inplace=True)
+
+        # Créer une copie de df_fevrier_copy avec les colonnes spécifiées
+        future = df_fevrier_copy[['ds', 'precipitation_mm', 'wind_speed', 'vacances', 'weekend', 'fait_jour', 'heure', 'num_mois']].copy()
+        future = utils.encode_cyclic_prophet(future,"num_mois",future['ds'].dt.month)
+        future = utils.encode_cyclic_prophet(future,"num_jour_semaine",future['ds'].dt.weekday)
+
+        forecast = modelProphetCompteur['model'].predict(future)
+        df_fevrier_copy['predictions_comptage_horaire'] = forecast['yhat']
+
+        df_fevrier= df_fevrier_copy
+
     return df_fevrier
 
 '''FONCTION POUR PREDICTION A 3JOUR'''
 
-def prediction3JModel(classifier,df, df_vac):
+def prediction3JModel(classifier,df, df_vac, modelProphetCompteur, compteur):
 
     df_work = df.copy()
     df_work_vac = df_vac.copy()
@@ -424,14 +365,31 @@ def prediction3JModel(classifier,df, df_vac):
         features_extended = features + [f'{col}_sin' for col in cyclic_columns] + [f'{col}_cos' for col in cyclic_columns]
         y_pred = pipeline.predict(df3J[features_extended])
         df3J['predictions_comptage_horaire'] = y_pred
+        utils.create_data3J(df3J, "XGB")   
 
     elif classifier == 'StackingRegressor':
         classifier = classifier
     elif classifier == 'Random Forest Regressor':
         classifier = classifier
-    elif classifier == 'Prophet':
-        classifier = classifier     
-    utils.create_data3J(df3J)   
+    elif classifier == 'Prophet':  
+        df3J_copy = df3J[df3J['nom_compteur'] == compteur].copy()
+        df3J_copy['ds'] = pd.to_datetime(df3J_copy["date_heure_comptage"])
+        df3J_copy.sort_values(by=["ds"], ascending=True, inplace=True)
+        df3J_copy.reset_index(drop=True, inplace=True)
+
+        # Créer une copie de df_fevrier_copy avec les colonnes spécifiées
+        future = df3J_copy[['ds', 'precipitation_mm', 'wind_speed', 'vacances', 'weekend', 'fait_jour', 'heure', 'num_mois']].copy()
+        future = utils.encode_cyclic_prophet(future,"num_mois",future['ds'].dt.month)
+        future = utils.encode_cyclic_prophet(future,"num_jour_semaine",future['ds'].dt.weekday)
+
+        forecast = modelProphetCompteur['model'].predict(future)
+        df3J_copy['predictions_comptage_horaire'] = forecast['yhat']
+
+
+
+        df3J= df3J_copy 
+        utils.create_data3J(df3J, "PROPHET")  
+
     return df3J
 
 

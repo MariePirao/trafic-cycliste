@@ -37,6 +37,11 @@ class Config:
     
     ABERRANTE = '''On voit très nettement une valeur extrême ou même abherrante. 
     Ce qui nous incite a analyser ce compteur ce jour-là'''
+    ABERRANTE1 = '''Nous pouvons déduire que la borne ne fonctionnait pas du 05/01/2024 à 01H au 06/05/2025 à 6H.
+    La valeur de 3070 est donc une valeur aberrante. Nous choisirons pour ce jour de prendre les mêmes valeurs que le dimanche précédent.'''
+    ABERRANTECORRECTION = '''Proposition de correction : Nous allons reprendre les données d'un autre jour sur le meme compteur en respectant le jour de la smeaine et les heures : 
+    periode utilisée du 2024-12-29 01:00 au 2024-12-30 06:00
+    periode à corriger du 2025-01-05 01:00 au 2025-01-06 06:00'''
     
     CONCLUSION_REPARTITION = '''Nous observons que la totalité des relevé de compteurs concerne l'année 2024/2025 avec une exception pour un relevé sur 2022.<br>
     Nous décidons d'exclure l'énnée 2022'''
@@ -63,3 +68,26 @@ class Config:
     les fermetures et restrictions de circulation aux abords immédiats ont pu entraîner une diminution significative du trafic sur le pont. 
     '''
     PREDICTION3J = '''Texte de Nicolas'''
+
+    BOULEVARD_JOURDAN = '''Des travaux ont eu lieu sur le boulevard Jourdan à Paris entre le 3 octobre et le 18 décembre 2024. 
+      Ces travaux comprenaient la réalisation d'un quai bus déporté, l'installation de séparateurs et de balises, ainsi que des opérations de marquage et de reprise de trottoir. '''
+    GRANDE_ARMEE= '''Des restrictions de circulation ont été mises en place à Paris en préparation des festivités du Nouvel An, notamment le 31 décembre 2024. 
+      Un arrêté municipal a interdit la circulation de tout véhicule à partir du 31 décembre 2024 à 16h00 jusqu'au 1er janvier 2025 à 04h00 dans les 8ᵉ, 16ᵉ et 17ᵉ arrondissements de Paris, 
+      incluant des zones comme l'avenue de la Grande Armée. '''
+    DAUMESNIL = '''Des travaux ont eu lieu sur l'avenue Daumesnil à Paris entre le 29 janvier et le 15 mars 2024, affectant la circulation des vélos. 
+      Ces travaux comprenaient la remise en état des bandes stabilisées et la création d'accroches vélos sur les trottoirs, avec des impacts principalement sur le trottoir 
+      et un cheminement piéton protégé tout au long du chantier.'''
+    CHAMPS_ELYSEE = '''?????'''
+    TURBIGO = '''?????'''
+    ROCHEREAU = '''La borne semble hors service, nous décidons de la retirer de notre analyse'''
+    LENOIR = '''Il y a un compteur dans chaque sens. Puisque la borne a compté correctement dans un sens. Nous sommes en droit de penser que la borne à était inopérante à ce moment là'''
+    INVALIDES = '''Il y a un compteur dans chaque sens. Puisque la borne a compté correctement dans un sens. Nous sommes en droit de penser que la borne à était inopérante à ce moment là'''
+    TOURNELLE = '''La réouverture de la cathédrale Notre-Dame de Paris a eu lieu le 8 décembre 2024, avec des cérémonies officielles le 7 décembre. 
+      Ces événements ont entraîné des restrictions de circulation dans un large périmètre autour de la cathédrale, notamment sur les quais hauts, incluant les pistes cyclables'''          
+    GRANDE_ARMEE7 = '''?????'''                
+    TERNES = '''Il y a un compteur dans chaque sens. Puisque la borne a compté correctement dans un sens. Nous sommes en droit de penser que la borne à était inopérante à ce moment là'''
+    MARNE = '''?????'''
+    SEBASTOPOL = '''Il y a un compteur dans chaque sens. Puisque la borne a compté correctement dans un sens. Nous sommes en droit de penser que la borne à était inopérante à ce moment là'''
+
+    VACANCES = '''Vu le résultat de ce graph,nous pouvons clairement affirmer que la zone n'a pas d'influence.
+    nous allons donc merger les 3 colonnes pour la suite de l'analyse '''
