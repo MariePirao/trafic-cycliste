@@ -59,9 +59,8 @@ st.markdown(
     """, unsafe_allow_html=True
 )
 
-#on evite de refaire les diffférents dataframe s'ils sont déjà en session
+#on evite de refaire les diffférents dataframe s'ils sont déjà en session, sinon on les calcule et on les met en session
 if 'df_merged_cleaned_final' not in st.session_state: # 60 secondes
-    # Si pas encore dans session_state, faire les calculs
     df = utils.load_data(Config.FILE_PATH + Config.FILE, ";",0) 
     df_m = utils.load_data(Config.FILE_PATH + Config.FILE_METEO, ',', 2)	
     df_v = utils.load_data(Config.FILE_PATH + Config.FILE_VAC, ',', 0)
@@ -90,7 +89,6 @@ if 'df_merged_cleaned_final' not in st.session_state: # 60 secondes
     st.session_state.df_merged_cleaned = df_merged_cleaned
     st.session_state.df_merged_cleaned_final = df_merged_cleaned_final
 else:  #0 seconde
-    # Sinon, récupérer les données depuis session_state
     df =st.session_state.df
     df_m = st.session_state.df_m
     df_v = st.session_state.df_v
@@ -112,7 +110,7 @@ st.sidebar.title("Sommaire")
 pages=["Présentation du sujet","Exploration", "DataVizualization", "Modélisation","Prédiction"]
 page=st.sidebar.radio("Aller vers", pages, key='menu_principal')
 
-#ce qui s'affiche si l 'option 1 de pages est sélectionné
+#Page 1
 if page == pages[0] : #0seconde
   st.write("### Présentation")
   st.markdown(Config.PRESENTATION, unsafe_allow_html=True)
@@ -140,11 +138,11 @@ if page == pages[0] : #0seconde
     st.markdown('<p style="margin-left: 50px;font-size:12px; font-style:italic;">source : effectué manuellement', unsafe_allow_html=True)
 
     
-#ce qui s'affiche si l 'option 1 de pages est sélectionné
+#Page 2
 if page == pages[1] : #4 seconde
 
   st.write("### Exploration des données")
-  titres_onglets2 = ['Visualisation des données', 'Travail de nettoyage', 'Analyse spécifique de certains compteurs', 'DataframeFinal']
+  titres_onglets2 = ['Visualisation des données', 'Travail de nettoyage', 'Analyse spécifique de certains compteurs', 'Dataframe final']
   ongletA, ongletB,ongletC, ongletD = st.tabs(titres_onglets2)
 
 # ONglet de présentation des différents dataframes créés 
@@ -180,7 +178,6 @@ if page == pages[1] : #4 seconde
       st.dataframe(df_ir.head())
       st.markdown(Config.OBSERVATION_TRAVAUX, unsafe_allow_html=True)
       
-  # Ajouter du contenu à chaque onglet
   with ongletB: 
     #analyse de la dsitribution des compteurs selon les mois/année et conclusion
     st.subheader("Analyse de la répartition des compteurs")
@@ -209,54 +206,52 @@ if page == pages[1] : #4 seconde
 
 
   with ongletC: 
+    #Analyse spécifique de la période des JO et impact sur les compteurs
     st.subheader("Impact des JO sur le trafic cycliste")
     fig = graph.px_compteurs_mensuel_JO(df_merged)
     st.plotly_chart(fig)
     st.markdown(Config.EXPLICATIONJO, unsafe_allow_html=True)
 
-    st.subheader("Moyenne journalière à 0 sur le trafic cycliste")
+    #Analyse spécifique de certains compteurs présentant de grandes interation de compteurs à 0
+    st.subheader("Itération de 10 comptage à 0 sur certains compteurs")
     Compteur = ['10 avenue de la Grande Armée SE-NO','106 avenue Denfert Rochereau NE-SO','135 avenue Daumesnil SE-NO','24 boulevard Jourdan E-O',
                 '33 avenue des Champs Elysées NO-SE','38 rue Turbigo','boulevard Richard Lenoir','Pont des Invalides',
                 "27 quai de la Tournelle","7 avenue de la Grande Armée NO-SE",
                 "Porte des Ternes", "Face au 48 quai de la marne",
                 "Totem 73 boulevard de Sébastopol"]
     # Liste déroulante pour choisir un compteur
-    selected_compteur = st.selectbox("Sélectionnez un compteur",options=Compteur,index=0)  # Par défaut, sélectionner le premier compteur
+    selected_compteur = st.selectbox("Sélectionnez un compteur",options=Compteur,index=0) 
+    #affichage du graphique
     fig = graph.px_compteurs_quotidien_0(df_merged, selected_compteur)
     st.plotly_chart(fig, use_container_width=True)
+    #affichage explication
     explication0 = ''''''
     if (selected_compteur == '24 boulevard Jourdan E-O'):
-      explication0 = '''Des travaux ont eu lieu sur le boulevard Jourdan à Paris entre le 3 octobre et le 18 décembre 2024. 
-      Ces travaux comprenaient la réalisation d'un quai bus déporté, l'installation de séparateurs et de balises, ainsi que des opérations de marquage et de reprise de trottoir. '''
+      explication0 = Config.BOULEVARD_JOURDAN
     elif (selected_compteur == '10 avenue de la Grande Armée SE-NO'):
-      explication0 = '''Des restrictions de circulation ont été mises en place à Paris en préparation des festivités du Nouvel An, notamment le 31 décembre 2024. 
-      Un arrêté municipal a interdit la circulation de tout véhicule à partir du 31 décembre 2024 à 16h00 jusqu'au 1er janvier 2025 à 04h00 dans les 8ᵉ, 16ᵉ et 17ᵉ arrondissements de Paris, 
-      incluant des zones comme l'avenue de la Grande Armée. '''
+      explication0 = Config.GRANDE_ARMEE
     elif (selected_compteur == '135 avenue Daumesnil SE-NO'):
-      explication0 = '''Des travaux ont eu lieu sur l'avenue Daumesnil à Paris entre le 29 janvier et le 15 mars 2024, affectant la circulation des vélos. 
-      Ces travaux comprenaient la remise en état des bandes stabilisées et la création d'accroches vélos sur les trottoirs, avec des impacts principalement sur le trottoir 
-      et un cheminement piéton protégé tout au long du chantier.'''
+      explication0 = Config.DAUMESNIL
     elif (selected_compteur == '33 avenue des Champs Elysées NO-SE'):
-      explication0 = '''?????'''
+      explication0 = Config.CHAMPS_ELYSEE
     elif (selected_compteur == '38 rue Turbigo'):
-      explication0 = '''?????'''
+      explication0 = Config.TURBIGO
     elif (selected_compteur == '106 avenue Denfert Rochereau NE-SO'):
-      explication0 = '''La borne semble hors service, nous décidons de la retirer de notre analyse'''
+      explication0 = Config.ROCHEREAU
     elif (selected_compteur == 'boulevard Richard Lenoir'):
-      explication0 = '''Il y a un compteur dans chaque sens. Puisque la borne a compté correctement dans un sens. Nous sommes en droit de penser que la borne à était inopérante à ce moment là'''
+      explication0 = Config.LENOIR 
     elif (selected_compteur == 'Pont des Invalides'):
-      explication0 = '''Il y a un compteur dans chaque sens. Puisque la borne a compté correctement dans un sens. Nous sommes en droit de penser que la borne à était inopérante à ce moment là'''
+      explication0 = Config.INVALIDES 
     elif (selected_compteur == '27 quai de la Tournelle'):
-      explication0 = '''La réouverture de la cathédrale Notre-Dame de Paris a eu lieu le 8 décembre 2024, avec des cérémonies officielles le 7 décembre. 
-      Ces événements ont entraîné des restrictions de circulation dans un large périmètre autour de la cathédrale, notamment sur les quais hauts, incluant les pistes cyclables'''          
+      explication0 = Config.TOURNELLE        
     elif (selected_compteur == '"7 avenue de la Grande Armée NO-SE'):
-      explication0 = '''?????'''                
+      explication0 = Config.GRANDE_ARMEE7               
     elif (selected_compteur == '"Porte des Ternes'):
-      explication0 = '''Il y a un compteur dans chaque sens. Puisque la borne a compté correctement dans un sens. Nous sommes en droit de penser que la borne à était inopérante à ce moment là'''
+      explication0 = Config.TERNES 
     elif (selected_compteur == 'Face au 48 quai de la marne'):
-      explication0 = '''?????'''
+      explication0 = Config.MARNE
     elif (selected_compteur == '"Totem 73 boulevard de Sébastopol'):
-      explication0 = '''Il y a un compteur dans chaque sens. Puisque la borne a compté correctement dans un sens. Nous sommes en droit de penser que la borne à était inopérante à ce moment là'''
+      explication0 = Config.SEBASTOPOL
     st.markdown(explication0, unsafe_allow_html=True)
 
     #Analkyse ciblé sur valeur abhérrante
@@ -265,34 +260,32 @@ if page == pages[1] : #4 seconde
     st.pyplot(fig)
     st.markdown(Config.ABERRANTE, unsafe_allow_html=True)
 
+    #Mise en évidencce de la problématique
     fig1 = graph.plot_abherrante(df_merged)
     st.plotly_chart(fig1, key="graph_abherrante_1")
-    abherrante1 = '''Nous pouvons déduire que la borne ne fonctionnait pas du 05/01/2024 à 01H au 06/05/2025 à 6H.
-    La valeur de 3070 est donc une valeur aberrante. Nous choisirons pour ce jour de prendre les mêmes valeurs que le dimanche précédent.'''
-    st.markdown(abherrante1, unsafe_allow_html=True)
+    st.markdown(Config.ABERRANTE1, unsafe_allow_html=True)
 
-    correct = '''Proposition de correction : Nous allons reprendre les données d'un autre jour sur le meme compteur en respectant le jour de la smeaine et les heures : 
-    periode utilisée du 2024-12-29 01:00 au 2024-12-30 06:00
-    periode à corriger du 2025-01-05 01:00 au 2025-01-06 06:00'''
-
-    st.markdown(correct, unsafe_allow_html=True)
+    #Proposition de correction et résultat de la correction
+    st.markdown(Config.ABERRANTECORRECTION, unsafe_allow_html=True)
     fig2 = graph.plot_abherrante(df_merged_cleaned)
     st.plotly_chart(fig2, key="graph_abherrante_2")
     fig = graph.boxplot(df_merged_cleaned['comptage_horaire'])
     st.pyplot(fig)
 
   with ongletD: #2seconde
+    #Présentation du dataframe final après correction
     st.subheader(" Dataframe final")
     st.dataframe(df_merged_cleaned_final.head(5))
 
 
-#ce qui s'affiche si l 'option 2 de pages est sélectionné
+#Page 3 Dataviz
 if page == pages[2] : 
 
   st.write("### DataVizualization")
   titres_onglets = ['Univarié','Multivarié']
   onglet1, onglet2 = st.tabs(titres_onglets)
  
+  #Analyse avec graphiques univariés
   with onglet1:
     st.subheader("Carte des Bornes de Comptage Vélo")
     map_file = graph.generate_folium_map(df_merged,"carte_bornes_velos.html")
@@ -309,43 +302,51 @@ if page == pages[2] :
     st.pyplot(fig)
     st.pyplot(fig1)
 
+  #Analyse avec graphiques multivariés
   with onglet2:
-    st.write("Nombre de passages de vélos selon l'heure et la température")
-    period_selector = st.selectbox("Sélectionnez la période", options=['semaine', 'week-end'], index=0, key="period_selector")
 
-    # Générer et afficher le graphique en fonction de la sélection
-    fig = graph.filter_data_temp(period_selector, df_merged_cleaned_final)
-    st.plotly_chart(fig)
-
+    #Analyse détaillé de l'impact des 3 conditions météorologiques
     st.subheader("Moyenne des passages de vélos en Fonction des Conditions Météorologiques")
     fig = graph.go_bar_meteo(df_merged)
     st.plotly_chart(fig)
-    fig = graph.sns_scatter_meteo(df_merged)
-    st.pyplot(fig)
-    st.subheader("Analyse de l'impact du jour ou de la nuit sur le nombre de passages")
+    #fig = graph.sns_scatter_meteo(df_merged)
+    #st.pyplot(fig)
+
+    #Analyse détaillé de l'impact de la téempérature
+    st.subheader("Nombre de passages de vélos selon l'heure et la température")
+    period_selector = st.selectbox("Sélectionnez la période", options=['semaine', 'week-end'], index=0, key="period_selector")
+    fig = graph.filter_data_temp(period_selector, df_merged_cleaned_final)
+    st.plotly_chart(fig)
+
+    #Analyse détaillé de l'impact des heures où il faut jour ou nuit
+    st.subheader("Impact du jour ou de la nuit sur le trafic")
     fig = graph.dayNight(df_merged)
     st.plotly_chart(fig)
-    st.subheader("Distribution du trafic vélo selon la température")
-    fig = graph.boxplotTemperature(df_merged)
-    st.pyplot(fig)
-    st.subheader("Distribution du trafic vélo selon la vitesse du vent")
-    fig = graph.boxplotVent(df_merged)
-    st.pyplot(fig)
 
-    st.subheader("Comparaison des comptages horaires sur la période choisie")
+    #st.subheader("Distribution du trafic vélo selon la température")
+    #fig = graph.boxplotTemperature(df_merged)
+    #st.pyplot(fig)
+    #st.subheader("Distribution du trafic vélo selon la vitesse du vent")
+    #fig = graph.boxplotVent(df_merged)
+    #st.pyplot(fig)
+
+    #Analyse impact spécificités de la piste cyclable
+    st.subheader("Impact des spécificités de la piste cyclable")
     period_selector1 = st.selectbox("Sélectionnez la période", options=['semaine', 'week-end'], index=0, key="period_selector1")
     fig = graph.filter_data_photo(period_selector1, df_merged_cleaned_final)
     st.pyplot(fig)
  
-    st.subheader("Relation entre les vacances et le nombre de passages")
+    #Analyse impact spécificités des vacances
+    st.subheader("Relation entre les vacances et trafic cycliste")
     fig = graph.boxplot_vacances1(df_merged_cleaned)
     st.pyplot(fig)
-    conclusionVacances = '''Vu le résultat de ce graph,nous pouvons clairement affirmer que la zone n'a pas d'influence.
-    nous allons donc merger les 3 colonnes pour la suite de l'analyse '''
-    st.markdown(conclusionVacances, unsafe_allow_html=True)
+    st.markdown(Config.VACANCES, unsafe_allow_html=True)
+
+    fig = graph.sns_scatter_vacances(df_merged_cleaned_final)
+    st.pyplot(fig)
 
 
-#ce qui s'affiche si l 'option 2 de pages est sélectionné
+#Page 4, les modélisation
 if page == pages[3] : 
 
   st.write("### Modélisation")
@@ -353,34 +354,32 @@ if page == pages[3] :
   onglet31, onglet32, onglet33  = st.tabs(titres_onglets)
  
   with onglet31:
+    #Analyse des corrélation
     st.subheader("Diagramme de correlation entre les variables")
     fig = graph.plot_heatmap(df_merged_cleaned_final)
     st.pyplot(fig)
 
+    #Cas particulier des features importances
     st.subheader("Graphique de l'importance des variables en nous basant sur RandomForest")
     model3, X_train, feats = modelisation.modelisationRFBase(df_merged_cleaned_final)
     fig = graph.plot_feature_importances_RF(model3,X_train,feats)
     st.pyplot(fig)  
 
   with onglet32:
-    #utilisation de modèles sur dataframe classique
+    #Cas des modèles regressor
     st.write("### Modèles Regressor")
-
-    #listCompteur = ['All'] + utils.searchUnique(df_merged_cleaned_final, 'nom_compteur').tolist()
-    #nom_compteur_selectionne = st.selectbox('Sélectionnez un nom de compteur', options=listCompteur)
-    #st.write('Le compteur choisi est :', nom_compteur_selectionne )
-    nom_compteur_selectionne = 'All'
 
     choix = ['StackingRegressor','XGBRegressor','Random Forest Regressor']
     option = st.selectbox('Choix du modèle', choix)
     st.write('Le modèle choisi est :', option)
-    #préprocess spécique pour les modèles XGBRegressor et StackingRegressor
+    #préprocess et entrainement des modèles XGBRegressor et StackingRegressor
     if option in ['StackingRegressor','XGBRegressor']:
       clf, X_train, X_test, y_train, y_test  = modelisation.modelisation(df_merged_cleaned_final, option)
-    #préprocess spécique pour les modèles Random Forest Regressor','BaggingRegressor', 'DecisionTreeRegressor
+    #préprocess et entrainement spécique pour les modèles Random Forest Regressor'
     else:
-      clf, X_train, X_test, y_train, y_test = modelisation.modelisationRFR(df_merged_cleaned_final,nom_compteur_selectionne, option)
+      clf, X_train, X_test, y_train, y_test = modelisation.modelisationRFR(df_merged_cleaned_final)
 
+    #possibilité d'afficher différents résultats 
     display = st.radio('Que souhaitez-vous montrer ?', ('metrique MAE','score (R²)', 'Nuage de point de prédiction'))
     if display == 'metrique MAE':
       trainMae,testMae = modelisation.scores(clf, display, X_train, X_test, y_train, y_test)
@@ -395,31 +394,40 @@ if page == pages[3] :
       st.pyplot(fig)
 
   with onglet33:
-    #prise en compte des specificités des données temporelle
+    #Cas du modèle reprophet 
     st.write("### Modèles temporelles")
-
+    # l'entrainement des modèles se fait sur un nombres restreint de compteurs pour eviter la surcharge de la session
     listCompteur2 = ["10 avenue de la Grande Armée SE-NO","16 avenue de la Porte des Ternes E-O","18 quai de l'Hôtel de Ville NO-SE",
                   "147 avenue d'Italie S-N","27 boulevard Davout N-S"]
-    models = modelisation.modelisationT(df_merged_cleaned_final, listCompteur2)
+    
+    #si le tableau contenant les modèles entrainés n'est déjà en session on le calcul et on le met en session
+    if 'models' not in st.session_state:
+      models = modelisation.modelisationProphet(df_merged_cleaned_final, listCompteur2)
+      st.session_state.models = models
+    else:
+      models = st.session_state.models
+
+    # proposition des compteurs 
     compteur = st.selectbox("Choisissez le nom du compteur", listCompteur2)
     st.write(f"Le compteur choisi est : {compteur}")
 
-    # Extraire les données, former et évaluer le modèle
+    # On récupère le model correspondant au compteurs choisi
     model = models[compteur]['model']
     test_data = models[compteur]['test_data']
     train_data = models[compteur]['train_data']
-  
-    test_data, test_predictions, mae = modelisation.predict_and_evaluate(model, train_data,test_data)
+    
+    #on reapplique la prédiction pour calculer la MAE et afficher le graphique
+    test_data, test_predictions, mae = modelisation.predict_and_evaluate(model,test_data)
     
     # Afficher le MAE
     st.write(f"Mean Absolute Error (MAE) pour le compteur {compteur}: {mae}")
 
-    # Générer et afficher le graphique
+    # Affichage du graphque
     fig = graph.generate_graph_Tempo(test_data, test_predictions, compteur)
     st.pyplot(fig)
 
 
-  #ce qui s'affiche si l 'option 2 de pages est sélectionné
+#Page 4 les prédictions futurs
 if page == pages[4] : 
 
   titres_onglets4 = ['Prédiction VS réalité', 'Prédiction à 3 jours']
@@ -442,21 +450,30 @@ if page == pages[4] :
     modèles = ['XGBRegressor','StackingRegressor','Random Forest Regressor', 'Prophet']
     modelChoisi = st.selectbox('Choix du modèle', modèles)
     st.write('Le modèle choisi est :', modelChoisi)
-
-    listCompteur2 = ['All',"10 avenue de la Grande Armée SE-NO","16 avenue de la Porte des Ternes E-O","18 quai de l'Hôtel de Ville NO-SE",
+    if modelChoisi != 'Prophet':
+      listCompteur2 = ['All'] + utils.searchUnique(df_merged_cleaned_final, 'nom_compteur').tolist()
+    else:
+      listCompteur2 = ["10 avenue de la Grande Armée SE-NO","16 avenue de la Porte des Ternes E-O","18 quai de l'Hôtel de Ville NO-SE",
                     "147 avenue d'Italie S-N","27 boulevard Davout N-S"]
-    #models = modelisation.modelisationT(df_merged_cleaned_final, listCompteur2)
+
     compteur = st.selectbox("Choisissez le nom du compteur", listCompteur2)
     st.write(f"Le compteur choisi est : {compteur}")
-    #if modelChoisi == 'Prophet':
-    #  infoModelCompteur = models[compteur]
-    #else:
-    #  infoModelCompteur = {}
+    infoModelCompteur = {}
+    if modelChoisi == 'Prophet' :
+      if compteur != 'All':
+        if 'models' not in st.session_state:
+          models = modelisation.modelisationProphet(df_merged_cleaned_final, listCompteur2)
+          st.session_state.models = models
+        else:
+          models = st.session_state.models
+        infoModelCompteur = models[compteur]
+      else:
+        st.error("Veuillez choisir un compteur spécifique.")
 
     # Créer un bouton "Lancer la prédiction" dans la première colonne
     if st.button("Lancer la prédiction"):
         # Appeler la méthode de prédiction en passant la date et l'heure choisie
-        df_février = modelisation.predictionModel(modelChoisi)
+        df_février = modelisation.predictionModel(modelChoisi, infoModelCompteur, compteur)
         # Afficher les résultats sous le premier bouton
         st.subheader("Comparaison entre prédiction et réalité du comptage cycliste en Février 2025")
         fig = graph.courbePrediction(df_février, compteur, date_debut_choisie,date_fin_choisie)
@@ -468,16 +485,20 @@ if page == pages[4] :
     st.image(Config.EXEMPLE, width=800)
 
     st.subheader("Lancez une prédiction !")
-    #modèles = ['XGBRegressor','StackingRegressor','Random Forest Regressor', 'Prophet']
-    #modelChoisi = st.selectbox('Choix du modèle', modèles, key='onglet11')
-    listCompteur2 = ['All'] + utils.searchUnique(df_merged_cleaned_final, 'nom_compteur').tolist()
+    modèles = ['XGBRegressor','Prophet']
+    modelChoisi = st.selectbox('Choix du modèle', modèles, key='onglet11')
+    if modelChoisi == 'XGBRegressor':
+      listCompteur2 = ['All'] + utils.searchUnique(df_merged_cleaned_final, 'nom_compteur').tolist()
+    else:
+      listCompteur2 = ["10 avenue de la Grande Armée SE-NO","16 avenue de la Porte des Ternes E-O","18 quai de l'Hôtel de Ville NO-SE",
+                    "147 avenue d'Italie S-N","27 boulevard Davout N-S"]
     compteur = st.selectbox("Choisissez le nom du compteur", listCompteur2, key='onglet11_1')
     st.write(f"Le compteur choisi est : {compteur}")
 
     # Créer un bouton "Lancer la prédiction" dans la première colonne
     if st.button("Lancer la prédiction", key='onglet11_2'):
         # Appeler la méthode de prédiction en passant la date et l'heure choisie
-        df3J = modelisation.prediction3JModel(modelChoisi, df_merged_cleaned_final,df_vjf_cleaned)
+        df3J = modelisation.prediction3JModel(modelChoisi, df_merged_cleaned_final,df_vjf_cleaned, infoModelCompteur, compteur)
         # Afficher les résultats sous le premier bouton
         st.markdown("Prédictions des 3 prochains jours sur l'ensemble des compteurs")
         fig = graph.courbePrediction3J(df3J, compteur)

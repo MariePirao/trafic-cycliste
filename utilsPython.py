@@ -17,12 +17,12 @@ def load_data(file_path, separator, numheader):
 def create_data(df, file_path):
     df.to_csv(file_path + 'dataframeFinal.csv')
 
-def create_data3J(df):
-    df.to_csv('Save3J.csv')
+def create_data3J(df, extension):
+    df.to_csv(extension+'_Save3J.csv')
 
 
 def informationDF(df):
-    '''Méthode qui permet de faire un affichage propre dans la page streamlit des info du dataframe
+    '''Fonction qui permet de faire un affichage propre dans la page streamlit des info du dataframe
     en reepectant le type de la variable'''
     int_columns = df.select_dtypes(include=['int64']).columns
     info_dict = {
@@ -45,7 +45,6 @@ def searchUnique(df, attribut):
 def removeJoblibFile():
     # chercher tous les fichiers .joblib
     files_to_delete = glob.glob("*.joblib")
-
     # Supprimer les fichiers
     for file in files_to_delete:
         try:
@@ -113,7 +112,6 @@ def meteoSearch():
         """
         Permet de faire du webScraping sur le site de la météo pour récupérer les informations pour la prédiction
         """
-        
         url_meteo = Config.URL_METEO
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36'}
         res = requests.get(url_meteo, headers=headers)
@@ -150,8 +148,8 @@ def meteoSearch():
 
 def get_fait_jour(date):
     """
-    Détermine si la date correspond à un jour en fonction de l'heure et de la saison
-    (été ou hiver) en France.
+    Détermine si la date et l'heure donné  correspond à un moment de jour ou de nuit  
+    en fonction de l'heure et de la saison (été ou hiver) en France.
     """
     mois = date.month
     heure = date.hour
@@ -170,15 +168,29 @@ def get_fait_jour(date):
         return 0 
     
 def encode_cyclic(df, columns):
+    '''
+    permet d'encoder les données temporelle en cos/sin
+    '''
     period = {'heure': 24, 'num_jour_semaine': 7, 'num_mois': 12, 'heure_num_jour_semaine': 168}
     for col in columns:
         df[f'{col}_sin'] = np.sin(2 * np.pi * df[col] / period[col])
         df[f'{col}_cos'] = np.cos(2 * np.pi * df[col] / period[col])
     return df
 
+def encode_cyclic_prophet(df, column, columnCalc):
+    '''
+    permet d'encoder les données temporelle en cos/sin pour le modèle prophet
+    '''
+    period = {'num_jour_semaine': 7, 'num_mois': 12}
+    df[f'{column}_sin'] = np.sin(2 * np.pi * columnCalc / period[column])
+    df[f'{column}_cos'] = np.cos(2 * np.pi * columnCalc / period[column])
+    return df
 
 def createDataframe(meteo, df_work, df_work_vac):
-
+    '''
+    permet de créer un dataframe pour les prédictions a 3J avec touts les compteurs, toutes les datea/heures
+    et toutes les prédictions des données permettant d'aider la prédiction
+    '''
     current_time = datetime.now()
     #différence d'heure
     next_hour = (current_time + timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
