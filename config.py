@@ -89,5 +89,24 @@ class Config:
     MARNE = '''?????'''
     SEBASTOPOL = '''Il y a un compteur dans chaque sens. Puisque la borne a compté correctement dans un sens. Nous sommes en droit de penser que la borne à était inopérante à ce moment là'''
 
-    VACANCES = '''Vu le résultat de ce graph,nous pouvons clairement affirmer que la zone n'a pas d'influence.
+
+
+    DATAVIZ1 = '''Dataviz 1'''
+
+    DATAVIZ2 = '''Dataviz 2'''
+
+    DATAVIZ3 = '''Dataviz 3'''
+
+    DATAVIZ4 = '''Dataviz 4'''
+
+    DATAVIZ5 = '''Dataviz 5'''
+    DATAVIZ6 = '''Dataviz 6'''
+    DATAVIZ7 = '''Dataviz 7'''
+    DATAVIZ8 = '''Dataviz 8'''
+    DATAVIZ9 = '''Dataviz 9'''
+    DATAVIZ10 = '''Dataviz 10'''
+    DATAVIZ11 = '''Dataviz 11'''
+    DATAVIZ12 = '''Dataviz 12 Vu le résultat de ce graph,nous pouvons clairement affirmer que la zone n'a pas d'influence.
     nous allons donc merger les 3 colonnes pour la suite de l'analyse '''
+    DATAVIZ13 = '''Dataviz 13'''
+    DATAVIZ14 = '''Dataviz 14'''
