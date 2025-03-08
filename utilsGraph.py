@@ -185,8 +185,8 @@ def sns_scatter_meteo(df):
 def sns_scatter_vacances(df):
 
     fig = plt.figure(figsize=(6, 6))
-    fig = sns.catplot(y="comptage_horaire", x="vacances_zone_c", kind="box", data = df)
-    plt.xlabel('vacances Paris')
+    fig = sns.catplot(y="comptage_horaire", x="vacances", kind="box", data = df)
+    plt.xlabel('vacances toutes zones')
     plt.ylim(0, 300)
     return fig
 
@@ -258,6 +258,27 @@ def journalyCount(df):
     plt.grid(True)  # Ajout du quadrillage avec ax
     return plt
 
+
+def averageCountByHour(df):
+    plt.figure(figsize=(10, 6))
+    sns.lineplot(x="heure", y="comptage_horaire", data = df)
+    plt.xlabel("Comptage horaire")
+    return plt
+
+
+def countByHourAndNeutralise(df):
+    plt.figure(figsize=(10, 6))
+    sns.lineplot(x="heure", y="comptage_horaire", hue="neutralise", data=df)
+    plt.xlabel("Comptage horaire")
+    return plt
+
+
+def averageCountByWeek(df):
+    plt.figure(figsize=(10, 6))
+    sns.lineplot(x="heure", y="comptage_horaire", hue="weekend", data=df)
+    plt.xlabel("Comptage horaire")
+    return plt
+
 # Distribution de la variable comptage_horaire et identification des outliers :
 def boxplot(column):
     plt.figure(figsize=(10, 6))
@@ -269,8 +290,8 @@ def boxplot(column):
 def generate_folium_map(df,map_filename):
 
     df_work = df.copy()
-
-    df_comptage_bornes = df_work.groupby(["latitude","longitude"])["comptage_horaire"].sum().reset_index() # permet de refaire un dataframe
+    df_work['weekend'] = df_work['num_jour_semaine'].apply(lambda x: 1 if x >= 5 else 0)
+    df_comptage_bornes = df_work.groupby(["latitude","longitude"])["comptage_horaire"].sum().reset_index()
        
     # Supprimer les lignes avec valeurs manquantes
     df_comptage_bornes = df_comptage_bornes.dropna(subset=["latitude", "longitude", "comptage_horaire"])
@@ -280,6 +301,10 @@ def generate_folium_map(df,map_filename):
 
     # Ajouter des cercles proportionnels avec une taille plus petite
     for _, row in df_comptage_bornes.iterrows():
+        compteur = df_work.loc[(df_work["latitude"] == row["latitude"]) & (df_work["longitude"] == row["longitude"]), "nom_compteur"]
+        value = row["comptage_horaire"]
+        popup_text = f"{compteur.iloc[0]} : {value} "
+        #popup_text = f"Borne: {value}"
         folium.CircleMarker(
             location=[row["latitude"], row["longitude"]],
             radius=max(row["comptage_horaire"] / 100000, 2),  # Divise par un nombre plus grand pour éviter des cercles géants
@@ -287,9 +312,9 @@ def generate_folium_map(df,map_filename):
             fill=True,
             fill_color="blue",
             fill_opacity=0.5,
-            popup=f"Borne: {row['comptage_horaire']} vélos"
+            popup=popup_text
         ).add_to(m)
-
+  
     # Sauvegarder la carte
     m.save(map_filename)
     return map_filename

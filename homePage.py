@@ -287,28 +287,67 @@ if page == pages[2] :
  
   #Analyse avec graphiques univariés
   with onglet1:
+    
+    st.subheader("Trafic cycliste quotidien à Paris entre 01/2024 et 01/2025")
+    fig = graph.journalyCount(df_merged_cleaned_final)
+    st.pyplot(fig)
+    st.markdown(Config.DATAVIZ1, unsafe_allow_html=True)
+
+    st.subheader("Comptage moyen par heure")
+    fig = graph.averageCountByHour(df_merged_cleaned_final)
+    st.pyplot(fig)
+    st.markdown(Config.DATAVIZ2, unsafe_allow_html=True)
+
+    st.subheader("Comptage moyen par heure weekend VS semaine")
+    fig = graph.averageCountByWeek(df_merged_cleaned_final)
+    st.pyplot(fig)
+    st.markdown(Config.DATAVIZ3, unsafe_allow_html=True)
+
     st.subheader("Carte des Bornes de Comptage Vélo")
-    map_file = graph.generate_folium_map(df_merged,"carte_bornes_velos.html")
+    map_file = graph.generate_folium_map(df_merged_cleaned_final,"carte_bornes_velos.html")
     # Afficher la carte dans Streamlit
     with open(map_file, "r", encoding="utf-8") as f:
       html_code = f.read()
     components.html(html_code, height=600)
+    st.markdown(Config.DATAVIZ4, unsafe_allow_html=True)
 
-    st.subheader("Trafic cycliste quotidien à Paris entre 01/2024 et 01/2025")
-    fig = graph.journalyCount(df_merged)
-    st.pyplot(fig)
     st.subheader("Top10 et Flop10 des Bornes selon le passages horaires moyen")
-    fig,fig1 = graph.top10Flop10(df_merged)
+    fig,fig1 = graph.top10Flop10(df_merged_cleaned_final)
     st.pyplot(fig)
     st.pyplot(fig1)
+    st.markdown(Config.DATAVIZ5, unsafe_allow_html=True)
 
   #Analyse avec graphiques multivariés
   with onglet2:
+
+    #Analyse impact spécificités de la piste cyclable
+    st.subheader("Impact des spécificités de la piste cyclable")
+    period_selector1 = st.selectbox("Sélectionnez la période", options=['semaine', 'week-end'], index=0, key="period_selector1")
+    fig = graph.filter_data_photo(period_selector1, df_merged_cleaned_final)
+    st.pyplot(fig)
+    st.markdown(Config.DATAVIZ6, unsafe_allow_html=True)
+
+    #Analyse détaillé de l'impact des heures où il faut jour ou nuit
+    st.subheader("Impact du jour ou de la nuit sur le trafic")
+    fig = graph.dayNight(df_merged)
+    st.plotly_chart(fig)
+    st.markdown(Config.DATAVIZ7, unsafe_allow_html=True)
+
+    st.subheader("Distribution du trafic vélo selon la température")
+    fig = graph.boxplotTemperature(df_merged)
+    st.pyplot(fig)
+    st.markdown(Config.DATAVIZ8, unsafe_allow_html=True)
+
+    st.subheader("Distribution du trafic vélo selon la vitesse du vent")
+    fig = graph.boxplotVent(df_merged)
+    st.pyplot(fig)
+    st.markdown(Config.DATAVIZ9, unsafe_allow_html=True)
 
     #Analyse détaillé de l'impact des 3 conditions météorologiques
     st.subheader("Moyenne des passages de vélos en Fonction des Conditions Météorologiques")
     fig = graph.go_bar_meteo(df_merged)
     st.plotly_chart(fig)
+    st.markdown(Config.DATAVIZ10, unsafe_allow_html=True)
     #fig = graph.sns_scatter_meteo(df_merged)
     #st.pyplot(fig)
 
@@ -317,33 +356,24 @@ if page == pages[2] :
     period_selector = st.selectbox("Sélectionnez la période", options=['semaine', 'week-end'], index=0, key="period_selector")
     fig = graph.filter_data_temp(period_selector, df_merged_cleaned_final)
     st.plotly_chart(fig)
+    st.markdown(Config.DATAVIZ11, unsafe_allow_html=True)
 
-    #Analyse détaillé de l'impact des heures où il faut jour ou nuit
-    st.subheader("Impact du jour ou de la nuit sur le trafic")
-    fig = graph.dayNight(df_merged)
-    st.plotly_chart(fig)
-
-    #st.subheader("Distribution du trafic vélo selon la température")
-    #fig = graph.boxplotTemperature(df_merged)
-    #st.pyplot(fig)
-    #st.subheader("Distribution du trafic vélo selon la vitesse du vent")
-    #fig = graph.boxplotVent(df_merged)
-    #st.pyplot(fig)
-
-    #Analyse impact spécificités de la piste cyclable
-    st.subheader("Impact des spécificités de la piste cyclable")
-    period_selector1 = st.selectbox("Sélectionnez la période", options=['semaine', 'week-end'], index=0, key="period_selector1")
-    fig = graph.filter_data_photo(period_selector1, df_merged_cleaned_final)
-    st.pyplot(fig)
- 
     #Analyse impact spécificités des vacances
-    st.subheader("Relation entre les vacances et trafic cycliste")
+    st.subheader("Relation entre les vacances par zone et trafic cycliste")
     fig = graph.boxplot_vacances1(df_merged_cleaned)
     st.pyplot(fig)
-    st.markdown(Config.VACANCES, unsafe_allow_html=True)
+    st.markdown(Config.DATAVIZ12, unsafe_allow_html=True)
 
+    st.subheader("Impact des vacances sur trafic cycliste")
     fig = graph.sns_scatter_vacances(df_merged_cleaned_final)
     st.pyplot(fig)
+    st.markdown(Config.DATAVIZ13, unsafe_allow_html=True)
+
+    st.subheader("Impact de la neutralisation des rues sur trafic cycliste")
+    fig = graph.countByHourAndNeutralise(df_merged_cleaned)
+    st.pyplot(fig)
+    st.markdown(Config.DATAVIZ14, unsafe_allow_html=True)
+
 
 
 #Page 4, les modélisation
@@ -415,7 +445,7 @@ if page == pages[3] :
     model = models[compteur]['model']
     test_data = models[compteur]['test_data']
     train_data = models[compteur]['train_data']
-    
+
     #on reapplique la prédiction pour calculer la MAE et afficher le graphique
     test_data, test_predictions, mae = modelisation.predict_and_evaluate(model,test_data)
     
@@ -441,10 +471,10 @@ if page == pages[4] :
     # Créer deux colonnes pour les boutons
     col1, col2 = st.columns(2)
     with col1:
-      date_debut_choisie = st.date_input("Choisissez une date de début", min_value=date_debut, max_value=date_limite - timedelta(days=1)) 
+      date_debut_choisie = st.date_input("Choisissez une date de début", min_value=date_debut, max_value=date_limite - timedelta(days=1),value=date_debut) 
       date_debut_choisie = datetime.combine(date_debut_choisie, datetime.min.time())
     with col2:
-      date_fin_choisie = st.date_input("Choisissez une date de fin", min_value=date_debut_choisie + timedelta(days=1), max_value=date_limite)
+      date_fin_choisie = st.date_input("Choisissez une date de fin", min_value=date_debut_choisie + timedelta(days=1), max_value=date_limite, value=date_limite)
       date_fin_choisie = datetime.combine(date_fin_choisie, datetime.min.time())
   
     modèles = ['XGBRegressor','StackingRegressor','Random Forest Regressor', 'Prophet']
@@ -470,11 +500,11 @@ if page == pages[4] :
       else:
         st.error("Veuillez choisir un compteur spécifique.")
 
-    # Créer un bouton "Lancer la prédiction" dans la première colonne
+    # Bouton de lancement de la prédiction
     if st.button("Lancer la prédiction"):
-        # Appeler la méthode de prédiction en passant la date et l'heure choisie
+        # Appeler la méthode de prédiction 
         df_février = modelisation.predictionModel(modelChoisi, infoModelCompteur, compteur)
-        # Afficher les résultats sous le premier bouton
+        # Afficher le graphe de la prédiction vs réalité sur les date et le compteurs choisis
         st.subheader("Comparaison entre prédiction et réalité du comptage cycliste en Février 2025")
         fig = graph.courbePrediction(df_février, compteur, date_debut_choisie,date_fin_choisie)
         st.pyplot(fig)
@@ -482,9 +512,9 @@ if page == pages[4] :
   with onglet11 :
     st.subheader("Prédiction à 3J")
     st.markdown(Config.PREDICTION3J, unsafe_allow_html=True)
-    st.image(Config.EXEMPLE, width=800)
+    st.image(Config.EXEMPLE, width=1000)
 
-    st.subheader("Lancez une prédiction !")
+    st.subheader("Lancez la prédiction ")
     modèles = ['XGBRegressor','Prophet']
     modelChoisi = st.selectbox('Choix du modèle', modèles, key='onglet11')
     if modelChoisi == 'XGBRegressor':
@@ -495,7 +525,7 @@ if page == pages[4] :
     compteur = st.selectbox("Choisissez le nom du compteur", listCompteur2, key='onglet11_1')
     st.write(f"Le compteur choisi est : {compteur}")
 
-    # Créer un bouton "Lancer la prédiction" dans la première colonne
+    # Bouton de lancement de la prédiction
     if st.button("Lancer la prédiction", key='onglet11_2'):
         # Appeler la méthode de prédiction en passant la date et l'heure choisie
         df3J = modelisation.prediction3JModel(modelChoisi, df_merged_cleaned_final,df_vjf_cleaned, infoModelCompteur, compteur)

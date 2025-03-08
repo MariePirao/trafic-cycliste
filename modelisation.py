@@ -352,6 +352,7 @@ def prediction3JModel(classifier,df, df_vac, modelProphetCompteur, compteur):
     df_work = df.copy()
     df_work_vac = df_vac.copy()
     meteo = utils.meteoSearch()
+    #creation d'un dataframe pour les 3 prochains jours avec estimation de la météo, sans travaux,  et recherche vacances
     df3J = utils.createDataframe(meteo, df_work, df_work_vac)
 
     if classifier == 'XGBRegressor':
@@ -367,10 +368,6 @@ def prediction3JModel(classifier,df, df_vac, modelProphetCompteur, compteur):
         df3J['predictions_comptage_horaire'] = y_pred
         utils.create_data3J(df3J, "XGB")   
 
-    elif classifier == 'StackingRegressor':
-        classifier = classifier
-    elif classifier == 'Random Forest Regressor':
-        classifier = classifier
     elif classifier == 'Prophet':  
         df3J_copy = df3J[df3J['nom_compteur'] == compteur].copy()
         df3J_copy['ds'] = pd.to_datetime(df3J_copy["date_heure_comptage"])
@@ -385,15 +382,12 @@ def prediction3JModel(classifier,df, df_vac, modelProphetCompteur, compteur):
         forecast = modelProphetCompteur['model'].predict(future)
         df3J_copy['predictions_comptage_horaire'] = forecast['yhat']
 
-
-
         df3J= df3J_copy 
         utils.create_data3J(df3J, "PROPHET")  
 
     return df3J
 
-
-
+#Permet de calculre les MAE et les scores
 def scores(clf, choice, X_train, X_test, y_train, y_test):
   if choice == 'score (R²)':
      score1, score2 = clf.score(X_train, y_train),clf.score(X_test,y_test) 

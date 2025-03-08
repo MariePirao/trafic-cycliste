@@ -18,8 +18,10 @@ Dans le repertoire de votre poste git a donc créé un répertoire trafic-cyclis
 En effet ce n'est pas une bonne pratique de remonter dans got les fichiers de données (csv). Mais pour avoir un code commun, j'ai au minimum créer le répertoire.
 Vous devez donc déposer les csv utiles au code dans ce répertoire en local.
 
+
+
 TEST DE L'APPLICATION:
-Tester l'application : Dans le terminal tapez : streamlit run homePage.py
+Tester l'application : Dans le terminal de VSCODE tapez : streamlit run homePage.py
 C'est la commande qui lance la page web. c'est un processus donc dans votre terminal vous n'avez plus la main. Pour récupérer la main et arrêter le processus/page web,
 faites ctr C attention il faut bien avoir cliquer sur le terminal et pas être encore en modif sur un fichier.
 (N.B : quand vous faites des modif de code, vous n'etes pas obligé de stopper et relancer streamlit. La page web detecte une modification sauvegardé (Cmd C),
@@ -37,3 +39,5 @@ git config --global user.name "usernameGit"
 
 
 Sur votre PC dans le repertoire que vous aurez crééer/trafic-cycliste/data il faut copier les csv utiles au projet
+
+Pour les fichiers joblib vous pouvez les laisser dans le répertoire courant.

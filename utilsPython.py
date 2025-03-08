@@ -18,7 +18,7 @@ def create_data(df, file_path):
     df.to_csv(file_path + 'dataframeFinal.csv')
 
 def create_data3J(df, extension):
-    df.to_csv(extension+'_Save3J.csv')
+    csv = df.to_csv(extension+'_Save3J.csv')
 
 
 def informationDF(df):
