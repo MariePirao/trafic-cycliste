@@ -6,7 +6,7 @@ from config import Config
 from sklearn.compose import ColumnTransformer
 from sklearn.discriminant_analysis import StandardScaler
 from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_absolute_error, mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import BaggingRegressor, RandomForestRegressor, StackingRegressor
 from prophet import Prophet
@@ -355,35 +355,26 @@ def prediction3JModel(classifier,df, df_vac, modelProphetCompteur, compteur):
     #creation d'un dataframe pour les 3 prochains jours avec estimation de la météo, sans travaux,  et recherche vacances
     df3J = utils.createDataframe(meteo, df_work, df_work_vac)
 
-    if classifier == 'XGBRegressor':
+    #if classifier == 'XGBRegressor':
         #récupération du model
-        pipeline = load('model_XGB.joblib')
+    pipeline = load('model_XGB.joblib')
         
-        features = ['nom_compteur', 'heure', 'num_mois', 'num_jour_semaine', 'latitude', 'longitude',
+    features = ['nom_compteur', 'heure', 'num_mois', 'num_jour_semaine', 'latitude', 'longitude',
                     'temperature_2m', 'precipitation_mm', 'wind_speed', 'fait_jour', 'neutralise', 'vacances', "Partage", "année"]
-        cyclic_columns = ['heure', 'num_jour_semaine', 'num_mois']
-        df3J = utils.encode_cyclic(df3J, cyclic_columns)
-        features_extended = features + [f'{col}_sin' for col in cyclic_columns] + [f'{col}_cos' for col in cyclic_columns]
-        y_pred = pipeline.predict(df3J[features_extended])
-        df3J['predictions_comptage_horaire'] = y_pred
-        utils.create_data3J(df3J, "XGB")   
+    cyclic_columns = ['heure', 'num_jour_semaine', 'num_mois']
+    df3J = utils.encode_cyclic(df3J, cyclic_columns)
+    features_extended = features + [f'{col}_sin' for col in cyclic_columns] + [f'{col}_cos' for col in cyclic_columns]
+    y_pred = pipeline.predict(df3J[features_extended])
+    df3J['predictions_comptage_horaire'] = y_pred
+   
 
-    elif classifier == 'Prophet':  
-        df3J_copy = df3J[df3J['nom_compteur'] == compteur].copy()
-        df3J_copy['ds'] = pd.to_datetime(df3J_copy["date_heure_comptage"])
-        df3J_copy.sort_values(by=["ds"], ascending=True, inplace=True)
-        df3J_copy.reset_index(drop=True, inplace=True)
-
-        # Créer une copie de df_fevrier_copy avec les colonnes spécifiées
-        future = df3J_copy[['ds', 'precipitation_mm', 'wind_speed', 'vacances', 'weekend', 'fait_jour', 'heure', 'num_mois']].copy()
-        future = utils.encode_cyclic_prophet(future,"num_mois",future['ds'].dt.month)
-        future = utils.encode_cyclic_prophet(future,"num_jour_semaine",future['ds'].dt.weekday)
-
-        forecast = modelProphetCompteur['model'].predict(future)
-        df3J_copy['predictions_comptage_horaire'] = forecast['yhat']
-
-        df3J= df3J_copy 
-        utils.create_data3J(df3J, "PROPHET")  
+    df3J['date_heure_comptage'] = pd.to_datetime(df3J['date_heure_comptage'])
+    df3J['predictions_comptage_horaire'] = df3J['predictions_comptage_horaire'].round().astype("int")
+    df3J['temperature_2m'] = pd.to_numeric(df3J['temperature_2m'], errors='coerce')
+    df3J['precipitation_mm'] = pd.to_numeric(df3J['precipitation_mm'], errors='coerce')
+    df3J['wind_speed'] = pd.to_numeric(df3J['wind_speed'], errors='coerce')
+    
+    utils.create_data3J(df3J, "XGB")   
 
     return df3J
 
@@ -396,3 +387,47 @@ def scores(clf, choice, X_train, X_test, y_train, y_test):
       y_predTrain = clf.predict(X_train)
       score1, score2 =  mean_absolute_error(y_train, y_predTrain), mean_absolute_error(y_test, y_predTest)
   return score1, score2
+
+def calculMetriquePrediction(df_realité): #fichiers_csv
+
+    df_realité["Date et heure de comptage"] = pd.to_datetime(df_realité["Date et heure de comptage"])
+
+    fichiers_csv = [f for f in os.listdir(Config.FILE_PATH_PREDIC) if f.endswith(".csv")]
+    resultats = []
+
+    for fichier in fichiers_csv:
+        df_pred = pd.read_csv(os.path.join(Config.FILE_PATH_PREDIC, fichier))
+        df_pred["date_heure_comptage"] = pd.to_datetime(df_pred["date_heure_comptage"])
+        
+        df_pred = pd.merge(df_pred[["nom_compteur", "date_heure_comptage", "predictions_comptage_horaire"]],
+                           df_realité,left_on=["nom_compteur", "date_heure_comptage"],right_on=["Nom du compteur", "Date et heure de comptage"],how="inner")
+
+        if df_pred.empty:
+            resultat_fichier = {
+                "Nom du fichier": fichier,
+                "MEAN": "Non disponible",
+                "MEAN PRED": "Non disponible",
+                "MAE": "Non disponible",
+                "RMSE": "Non disponible",
+                "MRE_+10": "Non disponible"
+            }
+            resultats.append(resultat_fichier)
+        else:
+            mean_true = df_pred["Comptage horaire"].mean()
+            mean_pred = df_pred["predictions_comptage_horaire"].mean()
+            mae = mean_absolute_error(df_pred["Comptage horaire"], df_pred["predictions_comptage_horaire"])
+            rmse = np.sqrt(mean_squared_error(df_pred["Comptage horaire"], df_pred["predictions_comptage_horaire"]))
+            df_filtered1 = df_pred[df_pred["Comptage horaire"] > 10]
+            mre1 = ((df_filtered1["Comptage horaire"] - df_filtered1["predictions_comptage_horaire"]).abs() / df_filtered1["Comptage horaire"]).mean() * 100
+            resultat_fichier = {
+                "Nom du fichier": fichier,
+                "MEAN": mean_true,
+                "MEAN PRED": mean_pred,
+                "MAE": mae,
+                "RMSE": rmse,
+                "MRE_+10": mre1}
+            resultats.append(resultat_fichier)
+    df_resultats = pd.DataFrame(resultats)
+    df_resultats.set_index("Nom du fichier", inplace=True)
+    df_resultats = df_resultats.sort_values(by = ['Nom du fichier'], ascending = True) 
+    return df_resultats
