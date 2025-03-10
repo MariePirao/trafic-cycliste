@@ -1,3 +1,4 @@
+import random
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -290,31 +291,27 @@ def boxplot(column):
 def generate_folium_map(df,map_filename):
 
     df_work = df.copy()
-    df_work['weekend'] = df_work['num_jour_semaine'].apply(lambda x: 1 if x >= 5 else 0)
-    df_comptage_bornes = df_work.groupby(["latitude","longitude"])["comptage_horaire"].sum().reset_index()
-       
-    # Supprimer les lignes avec valeurs manquantes
-    df_comptage_bornes = df_comptage_bornes.dropna(subset=["latitude", "longitude", "comptage_horaire"])
+    df_comptage_bornes = df_work.groupby(['nom_compteur', 'latitude', 'longitude'])['comptage_horaire'].mean().reset_index()
 
     # Créer une carte centrée sur Paris
     m = folium.Map(location=[48.8566, 2.3522], zoom_start=12)
-
     # Ajouter des cercles proportionnels avec une taille plus petite
     for _, row in df_comptage_bornes.iterrows():
-        compteur = df_work.loc[(df_work["latitude"] == row["latitude"]) & (df_work["longitude"] == row["longitude"]), "nom_compteur"]
-        value = row["comptage_horaire"]
-        popup_text = f"{compteur.iloc[0]} : {value} "
-        #popup_text = f"Borne: {value}"
+        compteur = df_work.loc[(df_work['latitude'] == row['latitude']) & (df_work['longitude'] == row['longitude']), 'nom_compteur']
+        value = row['comptage_horaire']
+        popup_text = f"Nom du site : {compteur.iloc[0]}, nombre moyen de vélos/heure/site : {int(value)} "
+        # Ajouter un jitter aléatoire aux coordonnées de latitude et longitude
+        jitter_latitude = row['latitude'] + random.uniform(-0.0002, 0.0002)  # variation aléatoire
+        jitter_longitude = row['longitude'] + random.uniform(-0.0002, 0.0002)  # variation aléatoire
         folium.CircleMarker(
-            location=[row["latitude"], row["longitude"]],
-            radius=max(row["comptage_horaire"] / 100000, 2),  # Divise par un nombre plus grand pour éviter des cercles géants
-            color="blue",
+            location=[jitter_latitude, jitter_longitude],
+            radius=max(row['comptage_horaire'] / 8, 2),  # Divise par un nombre plus grand pour éviter des cercles géants
+            color='blue',
             fill=True,
-            fill_color="blue",
+            fill_color='blue',
             fill_opacity=0.5,
             popup=popup_text
         ).add_to(m)
-  
     # Sauvegarder la carte
     m.save(map_filename)
     return map_filename

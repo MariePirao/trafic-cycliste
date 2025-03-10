@@ -150,7 +150,7 @@ if page == pages[1] : #4 seconde
     st.subheader("Aperçu du jeu de données")
     st.dataframe(df.head(5))  # Affichage de l'apercu du dataframe initial
 
-    st.subheader("Informations sur le jeu de donnée")
+    st.subheader("Informations sur le jeu de données")
     info_dict_aff = utils.informationDF(df)
     st.dataframe(info_dict_aff)
     st.markdown(Config.OBSERVATION_DF, unsafe_allow_html=True)
@@ -269,8 +269,8 @@ if page == pages[1] : #4 seconde
     st.markdown(Config.ABERRANTECORRECTION, unsafe_allow_html=True)
     fig2 = graph.plot_abherrante(df_merged_cleaned)
     st.plotly_chart(fig2, key="graph_abherrante_2")
-    fig = graph.boxplot(df_merged_cleaned['comptage_horaire'])
-    st.pyplot(fig)
+    #fig = graph.boxplot(df_merged_cleaned['comptage_horaire'])
+    #st.pyplot(fig)
 
   with ongletD: #2seconde
     #Présentation du dataframe final après correction
