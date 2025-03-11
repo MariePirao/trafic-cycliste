@@ -8,7 +8,7 @@ import utilsGraph as graph
 import modelisation as modelisation 
 from config import Config
 import streamlit.components.v1 as components
-from streamlit_folium import st_folium
+#from streamlit_folium import st_folium
 # Pour éviter d'avoir les messages warning
 import warnings
 warnings.filterwarnings('ignore')
@@ -380,16 +380,21 @@ if page == pages[3] :
  
   with onglet31:
     
-    st.subheader("Diagramme de correlation entre les variables")
+    st.subheader("Diagramme de corrélation entre les variables")
     fig = graph.plot_heatmap(df_merged_cleaned_final)
     st.pyplot(fig)
     st.markdown(Config.MODELISATION_1, unsafe_allow_html=True)
 
-    #affichage du tableau des corrélations linéaires
-    st.image(Config.TABLEAU_CORR_LINE, width=800) 
+    st.subheader("Analyse des corrélations linaires")
+    st.image(Config.TABLEAU_CORR_LINE, width=1000) 
     st.markdown(Config.MODELISATION_2, unsafe_allow_html=True)
+
+    st.subheader("Analyse de la saisonnalité des comptages de vélos")
+    fig = graph.plot_moyenne_par_semaine(df_merged_cleaned_final)
+    st.pyplot(fig)
+    st.markdown(Config.MODELISATION_4, unsafe_allow_html=True)
     
-    st.subheader("Graphique de l'importance des variables en nous basant sur RandomForest")
+    st.subheader("Importance des variables sur RandomForest")
     model3, X_train, feats = modelisation.modelisationRFBase(df_merged_cleaned_final)
     fig = graph.plot_feature_importances_RF(model3,X_train,feats)
     st.pyplot(fig)  
@@ -399,7 +404,7 @@ if page == pages[3] :
     #Cas des modèles regressor
     st.write("### Modèles Regressor")
 
-    choix = ['StackingRegressor','XGBRegressor','Random Forest Regressor']
+    choix = ['XGBRegressor','StackingRegressor','Random Forest Regressor']
     option = st.selectbox('Choix du modèle', choix)
     st.write('Le modèle choisi est :', option)
     #préprocess et entrainement des modèles XGBRegressor et StackingRegressor
@@ -465,6 +470,9 @@ if page == pages[4] :
 
   with onglet10 :
 
+    st.subheader("Analyse sur Février 2025")
+    st.markdown(Config.PREDICTION3J_2, unsafe_allow_html=True)
+
     #Mise en forme et proposition de date pour le mois de février
     date_debut = datetime(2025, 2, 1,0,0)
     date_limite = datetime(2025, 2, 28, 0, 0).date()
@@ -509,11 +517,12 @@ if page == pages[4] :
         st.subheader("Comparaison entre prédiction et réalité du comptage cycliste en Février 2025")
         fig = graph.courbePrediction(df_février, compteur, date_debut_choisie,date_fin_choisie)
         st.pyplot(fig)
+        if modelChoisi == 'XGBRegressor' :
+              st.markdown(Config.PREDICTION3J_3, unsafe_allow_html=True)
 
   with onglet11 :
     st.subheader("Prédiction à 3J")
     st.markdown(Config.PREDICTION3J, unsafe_allow_html=True)
-    st.subheader("Lancez la prédiction ")
 
     #Proposition du compteur
     listCompteur2 = ['All'] + utils.searchUnique(df_merged_cleaned_final, 'nom_compteur').tolist()
@@ -575,6 +584,7 @@ if page == pages[4] :
 
     #proposition du fichier à vérifier specifiquement
     fichier = st.selectbox("Sélection fichier:", list(df_list.keys()))
+    st.write(f"Le fichier choisi est : {fichier}")
     #affichage du graph pour ce fichier
     if st.button('Afficher le graphique'):
       fig = graph.plot_graph(fichier, compteur, df_realité,df_list)

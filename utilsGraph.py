@@ -19,38 +19,32 @@ def plot_heatmap(df):
     '''
     Affichage de la matri de corrélation
     '''
-
     df_work = df.copy()
 
     #encoder = OrdinalEncoder()
     le = LabelEncoder()
     df_work['nom_compteur'] = le.fit_transform(df_work[['nom_compteur']])
 
-    columns_to_consider = ['comptage_horaire','heure','num_jour_semaine','num_mois','fait_jour', 
-                           'weekend','vacances','neutralise',
-                           'Partage','1Sens','latitude','longitude',
-                           "temperature_2m", "precipitation_mm", "wind_speed",'nom_compteur']
+    columns_to_consider = ['comptage_horaire','heure','num_jour_semaine','num_mois','fait_jour', 'weekend','vacances','neutralise',
+                           'Partage','1Sens','latitude','longitude',"temperature_2m", "precipitation_mm", "wind_speed",'nom_compteur']
 
     # Calcul de la matrice de corrélation sur les données selectionnes
     corr_matrix = df_work[columns_to_consider].corr()
-
+    #Calcul du graphique
     fig, ax = plt.subplots(figsize=(12, 8))  # Ajuste la taille du graphique
-
-    # Tracer la heatmap avec ajustement de la taille de la police
     sns.heatmap(corr_matrix.corr(), ax=ax, annot=True, cmap='coolwarm', fmt=".2f",annot_kws={'size': 10})
     plt.xticks(fontsize=10) 
     plt.yticks(fontsize=10)
 
     #corr_with_target = corr_matrix['comptage_horaire']
-    #print(corr_with_target)
 
-    return fig  # Retourne la figure pour Streamlit
+    return fig  
 
 def heatmap_isna(df):
     """Affiche une heatmap de isna()."""
     fig = plt.figure()
     sns.heatmap(df.isna(), cmap="viridis", cbar=False)
-    return fig  # Retourne la figure pour Streamlit
+    return fig 
 
 def px_compteurs_quotidien_0(df, selected_compteur):
     #copy du df
@@ -127,7 +121,6 @@ def px_compteurs_mensuel_JO(df):
     df_filtered = df_filtered.copy()
     df_filtered.loc[:,"Mois"] = df_filtered["date_heure_comptage"].dt.to_period("M")
      
-
     # Calcul des moyennes mensuelles
     df_monthly = df_filtered.groupby(["nom_compteur", "Mois"])["comptage_horaire"].mean().reset_index()
 
@@ -141,7 +134,6 @@ def px_compteurs_mensuel_JO(df):
               color="nom_compteur", 
               width=100, height=600)
     return fig
-
 
 
 def go_bar_meteo(df):
@@ -304,16 +296,12 @@ def generate_folium_map(df,map_filename):
 # cartographie predictio
 def generate_folium_map_prediction(df_enter,compteur_select, map_filename, date_select, heure_select):
 
-    #if compteur_select == 'All':
     filtered_df = df_enter[(df_enter["date_heure_comptage"].dt.date == date_select) & (df_enter["heure"] == heure_select)]
-    #else:
-    #    filtered_df = df_enter[(df_enter["date_heure_comptage"].dt.date == date_select) &
-    #                             (df_enter["heure"] == heure_select) &
-    #                             (df_enter["nom_compteur"] == compteur_select)]        
 
     m = folium.Map(location=[filtered_df["latitude"].mean(), filtered_df["longitude"].mean()],
-            zoom_start=11,control_scale=True)
+            zoom_start=12,control_scale=True)
 
+    # Dégradé de bleu pour les autres compteurs
     colormap_blue = cm.LinearColormap(colors=["#66b3ff", "#3385ff", "#004080"], vmin=0, vmax=600)
     colormap_blue.add_to(m)
     
@@ -343,19 +331,16 @@ def generate_folium_map_prediction(df_enter,compteur_select, map_filename, date_
     return map_filename
 
        
-
-
-
 def boxplotTemperature(df):
-    df3 = df[df["nom_compteur"]=="Totem 73 boulevard de Sébastopol S-N"]
-    df2 = df3[['comptage_horaire', 'date_heure_comptage', 'temperature_2m']].copy()
+    # Code boxplot Trafic vélo selon la température
+    df2 = df[['comptage_horaire', 'date_heure_comptage', 'temperature_2m']].copy()
     bins = [-20, 0, 5, 10, 15, 20, 25, 30, 35, 60]
     labels = ["<0°C", "0-5°C", "5-10°C", "10-15°C", "15-20°C", "20-25°C", "25-30°C", "30-35°C", ">35°C"]
     df2.loc[:, 'Température Catégorie'] = pd.cut(df2['temperature_2m'], bins=bins, labels=labels)
 
     plt.figure(figsize=(10, 6))
     sns.boxplot(data=df2, x='Température Catégorie', y='comptage_horaire', palette='coolwarm', hue='Température Catégorie')
-    plt.ylim(-10, 1500)
+    plt.ylim(-10, 500)
     plt.xlabel("Température (°C)")
     plt.ylabel("Nombre de vélos comptés")
 
@@ -363,17 +348,14 @@ def boxplotTemperature(df):
 
 def boxplotVent(df):
     # Code boxplot Trafic vélo selon la vitesse du vent
-    df3 = df[df["nom_compteur"]=="Totem 73 boulevard de Sébastopol S-N"]
-    df2 = df3[['comptage_horaire', 'date_heure_comptage', 'wind_speed']].copy()
-    #df2['date_heure_comptage'] = pd.to_datetime(df2['date_heure_comptage'], errors='coerce')
+    df2 = df[['comptage_horaire', 'date_heure_comptage', 'wind_speed']].copy()
     bins = [0, 5, 10, 15, 20, 25, 30, 40, 50]
     labels = ["0-5 km/h", "5-10 km/h", "10-15 km/h", "15-20 km/h", "20-25 km/h","25-30 km/h", "30-40 km/h", "40-50 km/h"]
-
     df2.loc[:, 'Vent Catégorie'] = pd.cut(df2['wind_speed'], bins=bins, labels=labels)
 
     plt.figure(figsize=(10,6))
     sns.boxplot(data=df2, x='Vent Catégorie', y='comptage_horaire', palette='coolwarm', hue='Vent Catégorie')
-    plt.ylim(-10, 1500)
+    plt.ylim(-10, 500)
     plt.xlabel("Vitesse du vent (km/h)")
     plt.ylabel("Nombre de vélos comptés")   
 
@@ -448,43 +430,24 @@ def boxplot_vacances1(df):
     return plt
 
 
-def boxplot_vacances3(df):
-    df.loc[:,'Vacances_zone_a'] = df['vacances_zone_a'].map({0: 'Non', 1: 'Oui'})
-    df.loc[:,'Vacances_zone_b'] = df['vacances_zone_b'].map({0: 'Non', 1: 'Oui'})
-    df.loc[:,'Vacances_zone_c'] = df['vacances_zone_c'].map({0: 'Non', 1: 'Oui'})
+def plot_moyenne_par_semaine(df):
+    """Cette fonction prend un dataframe avec des comptages de vélos par bornes
+    et génère un graphique montrant la moyenne des comptages par semaine par compteur.
+    """
+    df_work = df.copy()
+    # ajout de la semaine
+    df_work['semaine'] = df_work['date_heure_comptage'].dt.isocalendar().week
 
-    # Calculer la moyenne du comptage_horaire pour chaque zone (vacances oui ou non)
-    df_a = df.groupby(['Vacances_zone_a'])['comptage_horaire'].mean().reset_index()
-    df_b = df.groupby(['Vacances_zone_b'])['comptage_horaire'].mean().reset_index()
-    df_c = df.groupby(['Vacances_zone_c'])['comptage_horaire'].mean().reset_index()
+    # Calculer la moyenne des comptages par semaine et par compteur
+    df_semaine = df_work.groupby(['année', 'semaine'])['comptage_horaire'].mean().reset_index()
 
-    # Créer des subplots pour afficher les trois graphiques
-    fig, axes = plt.subplots(1, 3, figsize=(18, 6))
+    plt.figure(figsize=(10, 6))
+    sns.lineplot(data=df_semaine, x='semaine', y='comptage_horaire')
+    plt.xlabel('Semaine', fontsize=12)
+    plt.ylabel('Moyenne des comptages de vélos', fontsize=12)
+    plt.xticks(rotation=45)
 
-    # Graphique pour la zone A
-    sns.barplot(data=df_a, x='Vacances_zone_a', y='comptage_horaire', ax=axes[0], palette='Blues', hue='Vacances_zone_a', legend=False)
-    axes[0].set_title('Zone A')
-    axes[0].set_xlabel('Vacances')
-    axes[0].set_ylabel('comptage_horaire moyen')
-
-    # Graphique pour la zone B
-    sns.barplot(data=df_b, x='Vacances_zone_b', y='comptage_horaire', ax=axes[1], palette='Greens', hue='Vacances_zone_b', legend=False)
-    axes[1].set_title('Zone B')
-    axes[1].set_xlabel('Vacances')
-    axes[1].set_ylabel('comptage_horaire moyen')
-
-    # Graphique pour la zone C
-    sns.barplot(data=df_c, x='Vacances_zone_c', y='comptage_horaire', ax=axes[2], palette='Reds', hue='Vacances_zone_c', legend=False)
-    axes[2].set_title('Zone C')
-    axes[2].set_xlabel('Vacances')
-    axes[2].set_ylabel('comptage_horaire moyen')
-
-    # Ajouter un titre global
-    plt.suptitle("comptage_horaire moyen en fonction des vacances (Zone A, B, C)", fontsize=16)
-
-    # Ajuster la mise en page
-    plt.tight_layout(rect=[0, 0, 1, 0.96])  # Pour éviter que le titre chevauche les graphiques
-    return fig
+    return plt
 
 
 def plot_avg_mensuel(df, rue):
@@ -582,6 +545,7 @@ def generate_graph_Tempo(test_data, test_predictions, compteur):
 
 
 def plot_feature_importances_RF(model3,X_train,feats):
+    '''Ce graph des features importance pour le modèle Random Forest'''  
 
     importances = model3.feature_importances_
     # definition du seuil d'importance et selection des features
