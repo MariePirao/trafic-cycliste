@@ -4,8 +4,6 @@ import pandas as pd
 # Pour éviter d'avoir les messages warning
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
-
-from sklearn.metrics import mean_absolute_error, mean_squared_error
 from config import Config
 import requests
 import warnings
@@ -14,10 +12,12 @@ warnings.filterwarnings('ignore')
 
 
 def load_data(file_path, separator, numheader):
+    '''Fonction qui permet faire un read de csv et renvoie un dataframe'''
     return pd.read_csv(file_path, sep=separator, header=numheader)
 
 
 def create_data3J_csv(df):
+    '''Fonction qui permet d'enregitrer des prediction au format csv dans prediction'''
     current_time = datetime.now()
     next_hour = (current_time + timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
     nom_fichier = f"prediction_{next_hour.strftime('%Y-%m-%d_%Hh00')}"
@@ -25,7 +25,7 @@ def create_data3J_csv(df):
 
 
 def informationDF(df):
-    '''Fonction qui permet de faire un affichage propre dans la page streamlit des info du dataframe
+    '''Fonction qui permet de faire un affichage propre dans la page streamlit des infos du dataframe
     en reepectant le type de la variable'''
     int_columns = df.select_dtypes(include=['int64']).columns
     info_dict = {
@@ -43,9 +43,10 @@ def informationDF(df):
     return info_dict_aff
 
 def searchUnique(df, attribut):
+    '''Fonction qui permet de rechercher les valeur unique dans un dataframe de l'attribut passé en argument'''
     return df[attribut].unique()
 
-def removeJoblibFile():
+#def removeJoblibFile():
     # chercher tous les fichiers .joblib
     files_to_delete = glob.glob("*.joblib")
     # Supprimer les fichiers
@@ -57,13 +58,14 @@ def removeJoblibFile():
             print(f"Erreur lors de la suppression de {file}: {e}")
 
 def findListCSV():
+    '''Fonction qui permet de créer un dictionnaire a partir des fichier csv de prédiction'''
     fichiers_csv = [f for f in os.listdir(Config.FILE_PATH_PREDIC) if f.endswith(".csv")]
     df_list = {f: pd.read_csv(os.path.join(Config.FILE_PATH_PREDIC, f), parse_dates=["date_heure_comptage"]) for f in fichiers_csv}
     return df_list
 
 
 def merge(df_cleaned,df_m,df_jv, df_p, df_ir):
-
+    '''Fonction qui permet le merge de tous les csv de données'''
     df_result = df_cleaned.copy()
     df_result['time']=df_result["date_heure_comptage"]
 
@@ -238,6 +240,9 @@ def createDataframe(meteo, df_work, df_work_vac):
 
 
 def completeDataframe(df3J,compteur_select, date_select, heure_select):
+    '''
+    permet de créer un tableau avec les préidctions du comptage, de la Température (°C) des Précipitation (mm/h) et du Vent (km/h)
+    '''
     if compteur_select == 'All':
         filtered_df = df3J[(df3J["date_heure_comptage"].dt.date == date_select) &(df3J["heure"] == heure_select)]
     else:

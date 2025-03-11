@@ -81,21 +81,32 @@ class Config:
     Outre l’impact des Jeux Olympiques, nous avons constaté que certains compteurs présentaient des relevés à zéro sur une période plus ou moins
     longue. <br>
     Si un relevé à 0 n’est pas aberrant en soi (période nocturne, zones peu passagères), il est en revanche anormal de constater un relevé à zéro
-    sur une période de plusieurs heures consécutives (nous avons considéré un seuil de 10 heures).<br><br>
+    sur une période de plusieurs heures consécutives (nous avons considéré un seuil de 10 heures).<br>
     Ci-après les compteurs concernés :
     '''
-    PREDICTION3J = '''Après avoir vérifié le bon fonctionnement de notre modèle sur les données du mois de février 2025,
-    nous pouvons désormais mettre notre modèle en application pour des prévisions futures.
-    Dans cette optique, nous avons choisi de faire des prévisions pour les trois prochains jours. 
-    Les données météoréologiques sont scrappées directement depuis le site : <a href="https://www.meteo-paris.com/meteo-8-jours/paris-75000" target="_blank">https://www.meteo-paris.com/meteo-8-jours/paris-75000</a> '''
+    PREDICTION3J = '''Après avoir vérifié le bon fonctionnement de notre modèle sur les données de février 2025, nous pouvons désormais le mettre en application pour des prévisions futures. <br>  
+    Pour simplifier notre démarche, nous nous sommes concentrés sur les trois prochains jours.
+    Les données météorologiques sont collectées directement depuis le site : 
+    <a href="https://www.meteo-paris.com/meteo-8-jours/paris-75000" target="_blank">https://www.meteo-paris.com/meteo-8-jours/paris-75000</a> '''
 
-    PREDICTION3J_1 = '''Ci-dessous un affichage interactif permettant de visualiser les prévisions des comptages cyclistes en temps réel. Cette fonctionnalité est une étape concrète dans la mise en application de notre modèle, et elle pourrait, dans un cadre réel, être utilisée pour des applications visant à fournir aux cyclistes, urbanistes ou autres une vision du nombre de cyclistes à court terme dans différentes zones de la ville.'''
+    PREDICTION3J_1 = '''Ci-dessous, un affichage interactif permettant de visualiser les prévisions des comptages cyclistes en temps réel.Cette fonctionnalité est une étape concrète dans la mise en application de notre modèle.<br>
+    Cet écran pourrait être utilisée, dans un cadre réel, pour des applications visant à fournir aux cyclistes, urbanistes ou autres une prévision du trafic cycliste à court terme dans différentes zones de la ville.'''
 
-    SUIVI_1 = '''Dans cette deuxième partie, vous pouvez comparer les prévisions avec les données réelles. Deux options sont disponibles :<br>
-    1. **Choisir un test** : Sélectionnez un ancien test avec des prévisions et des données réelles, ou optez pour un test plus récent, bien que la comparaison avec les données réelles ne soit peut-être pas encore possible.<br>
-    2. **Filtrer par compteur** : Choisissez un compteur spécifique ou visualisez les données de **tous les compteurs** en sélectionnant "All".'''
+    PREDICTION3J_2 = '''Suite aux tests de nos modèles avec notre jeu de données initial, nous avons souhaité vérifier la fiabilité de nos modèles 
+    en les testant avec des données réelles sur une période non connue du modèle.'''
 
-    SUIVI_2 = '''Dans l'optique de mettre notre modèle en application, nous avons décidé d'automatiser le suivi de ses résultats. <br>
+    PREDICTION3J_3 = '''Concernant le modèle XGBoost, nous obtenons les résultats suivants :<br>
+        - MAE : 14,79<br>
+        - MAE relative : 19,2 %<br>
+        - RMSE : 27,49<br>
+    Les valeurs des métriques MAE et MAE relative sont plutôt satisfaisantes et proches des résultats obtenus lors des tests sur le jeu de données initial. <br>
+    En revanche, la RMSE est un peu plus élevée, ce qui indique des écarts plus importants à certains moments. <br>
+    En analysant le graphique, on remarque que les erreurs surviennent principalement pendant les périodes de forte affluence.'''
+
+    SUIVI_1 = '''Finalement, nous avons souhaité faire une phase de monitoring, c'est-à-dire vérifier la performance du modèle une fois en application.<br>
+    Vous pouvez, afficher le graphique à courbes des comptages réels et prédits sur les anciennes prédictions.'''
+
+    SUIVI_2 = '''Dans l'optique de mettre notre modèle en application, nous avons décidé d'automatiser le suivi de ses métriques. <br>
                 Cela nous permet d'analyser ses performances en temps réel et, en cas de dégradation, de revoir le modèle.'''
 
     BOULEVARD_JOURDAN = '''Des travaux ont eu lieu sur le boulevard Jourdan à Paris entre le 3 octobre et le 18 décembre 2024. 
@@ -152,5 +163,13 @@ class Config:
     MODELISATION_1='''Nous observons une corrélation moyenne entre la variable cible et les données telles que l’ heure, fait_jour et latitude. <br>
     Il existe également une anticorrélation avec les variables num_jour_semaine et weekend.'''
     TABLEAU_CORR_LINE = "Tableau_correlationLinaire.png"
-    MODELISATION_2=''''''
-    MODELISATION_3=''''''
+    MODELISATION_2='''L’analyse des corrélations linéaires montre que la variable cible est peu influencée par les variables présentes, 
+    à l’exception des quelques variables temporelles telles que heure et fait_jour.<br> 
+    Cela peut suggérer une approche de modélisation non linéaire et donc la présence d’interactions complexes entre les variables, car il n’est pas à exclure qu’une relation plus complexe existe entre les données.
+    '''
+    MODELISATION_3='''Pour le choix des variables nous étions partis sur la totalité des données qui, pour nous, pouvaient avoir un impact sur la prédiction, 
+    en nous inspirant du diagramme de corrélation.<br> 
+    Puis nous avons remarqué que le choix des variables était dépendant du modèle lui-même et donc devait être ajusté à partir des résultats de prédictions.'''
+    
+    MODELISATION_4='''En observant la courbe des moyennes de comptages par jour dans la partie exploration de données où ici sur la moyenne hebdomadaire, on a identifié une certaine saisonnalité<br>
+    La répartition des comptages est très dépendante des vacances.'''

@@ -1,4 +1,3 @@
-from random import choices
 import streamlit as st
 import numpy as np
 import pandas as pd
@@ -156,7 +155,6 @@ def modelisation(df, classifier):
             pipeline.fit(X_train, y_train)
             dump(pipeline, 'model_XGB.joblib') 
         #xgb_cv_scores = cross_val_score(pipeline, X_train, y_train, cv=5, scoring='neg_mean_absolute_error')
-        #print(f'Validation croisée XGBoost : MAE moyen = {-xgb_cv_scores.mean():.4f} (±{xgb_cv_scores.std():.4f})')
 
     elif classifier == 'StackingRegressor':
         if os.path.exists('model_ST.joblib'):
@@ -172,8 +170,6 @@ def modelisation(df, classifier):
                 ('regressor', stack_model)])
             pipeline.fit(X_train, y_train)
             dump(pipeline, 'model_ST.joblib') 
-        #stack_cv_scores = cross_val_score(pipeline, X_train, y_train, cv=5, scoring='neg_mean_absolute_error')
-        #print(f'Validation croisée Stacking Regressor : MAE moyen = {-stack_cv_scores.mean():.4f} (±{stack_cv_scores.std():.4f})')
 
     return pipeline, X_train, X_test, y_train, y_test 
 
@@ -378,7 +374,8 @@ def prediction3JModel(df, df_vac):
 
     return df3J
 
-#Permet de calculre les MAE et les scores
+'''FONCTIONS DE CALCUL DE METRIQUE'''
+
 def scores(clf, choice, X_train, X_test, y_train, y_test):
   if choice == 'score (R²)':
      score1, score2 = clf.score(X_train, y_train),clf.score(X_test,y_test) 
@@ -388,7 +385,10 @@ def scores(clf, choice, X_train, X_test, y_train, y_test):
       score1, score2 =  mean_absolute_error(y_train, y_predTrain), mean_absolute_error(y_test, y_predTest)
   return score1, score2
 
-def calculMetriquePrediction(df_realité): #fichiers_csv
+
+def calculMetriquePrediction(df_realité): 
+    '''Cette fonction parcourt tous les ficheirs de prédiction.
+        Avec la dernière extraction elle calcule les différentes métriques en utilisant les vraies valeurs de compteurs '''
 
     df_realité["Date et heure de comptage"] = pd.to_datetime(df_realité["Date et heure de comptage"])
 

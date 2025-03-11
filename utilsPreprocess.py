@@ -3,6 +3,7 @@ import pandas as pd
 import warnings
 warnings.filterwarnings('ignore')
     
+'''FONCTIONS DE PREPROCESSING DU FICHIER CYCLISTE'''
 
 def rename(df):
     # Dictionnaire pour le remplacement des valeurs dans la colonne 'nom_compteur'
@@ -141,6 +142,10 @@ def preprocess_cyclisme(df):
 
     return df_work
 
+
+'''FONCTION DE PREPROCESSING DU FICHIER METEO'''
+
+
 def preprocess_meteo(df):
 
     """Prétraitement des données : suppression des valeurs manquantes et sélection des colonnes numériques."""
@@ -165,6 +170,8 @@ def preprocess_meteo(df):
                                  labels=['Gel','Froid', 'Tempéré', 'Chaud', 'Très chaud'], right=False)
     
     return df_m
+
+'''FONCTIONS DE PREPROCESSING DU FICHIER JOUR FERIE'''
 
 def preprocess_vacancesferie(df_v, df_jf):
 
@@ -211,12 +218,16 @@ def preprocess_vacancesferie(df_v, df_jf):
 
     return df_jv
 
+'''FONCTIONS DE PREPROCESSING DU FICHIER PHOTO'''
+
 def preprocess_photo(df):
     """Suppression colonnes inutiles"""
     df.drop(columns=['Unnamed: 0'], inplace=True)
     df.drop(columns=['2sens'], inplace=True)
     df.drop(columns=['Separe'], inplace=True)
     return df
+
+'''FONCTIONS DE CORRECTIONS SUR FICHIER CYCLISME '''
 
 def correctionDataviz(df_merged_cleaned):
     """Dernier traitement sur le dataframe avant la modélisation"""
@@ -232,22 +243,24 @@ def corriger_comptage(dfenter):
 
     df_result = dfenter.copy()
     
+    #On en profites pour retirer ces compteurs qui sont érronés suite au graph
     df_result = df_result[(df_result["nom_compteur"] != "10 avenue de la Grande Armée 10 avenue de la Grande Armée [Bike OUT]")
             & (df_result["nom_compteur"] != "44 avenue des Champs Elysées SE-NO") 
             & (df_result["nom_compteur"] != "106 avenue Denfert Rochereau NE-SO")]
 
-    # Définir les dates de la période à corriger et de la période de référence
+    # On passe à la correstion de la valeur abherrante.
+    # Définition des dates de la période à corriger et de la période de référence
     periode_reference_debut = '2024-12-29 01:00'
     periode_reference_fin = '2024-12-30 06:00'
     periode_a_corriger_debut = '2025-01-05 01:00'
     periode_a_corriger_fin = '2025-01-06 06:00'
 
-    # Filtrer les données de la période de référence (29/12/2024 à 01h - 30/12/2024 à 06h)
+    # Période de référence
     df_reference = df_result.loc[(df_result['date_heure_comptage'] >= periode_reference_debut) & 
                           (df_result['date_heure_comptage'] <= periode_reference_fin) &
                           (df_result['nom_compteur'] == "Quai d'Orsay O-E")]
 
-    # Filtrer les données de la période incorrecte (05/01/2025 à 01h - 06/01/2025 à 06h)
+    # Période à corriger
     df_incorrecte = df_result.loc[(df_result['date_heure_comptage'] >= periode_a_corriger_debut) & 
                            (df_result['date_heure_comptage'] <= periode_a_corriger_fin) &
                            (df_result['nom_compteur'] == "Quai d'Orsay O-E")]
@@ -261,6 +274,7 @@ def corriger_comptage(dfenter):
         if heure in reference_dict:
             df_result.at[idx, 'comptage_horaire'] = reference_dict[heure]  # Appliquer la valeur de comptage correspondante
 
+    #on corrige maintenant les compteurs à 0
     df_result = correctionCompteur0(df_result)
 
     return df_result
@@ -307,12 +321,10 @@ def remplacerParMoyenne(df, df_0):
 
 def searchCompteur0 (df):
 
-    '''
-    Dans cette méthode on va chercher les itération de 20 lignes sur le meme compteur qui présente un compteur à 0 sans raison de neutralisation'''
+    ''' Dans cette méthode on va chercher les itération de 10 lignes sur le meme compteur qui présente un compteur à 0 sans raison de neutralisation'''
     
     df_work = df.copy()
-     
-    #on va chercher 20 itérations d'affilées. IL faut donc s'assurer que le df est trié par com de compteur puis date_heure_comptage
+    #on va chercher 10 itérations d'affilées. IL faut donc s'assurer que le df est trié par com de compteur puis date_heure_comptage
     df_work.sort_values(by=["nom_compteur","date_heure_comptage",], ascending=True, inplace=True)
     df_work.reset_index(drop=True, inplace=True)
 
