@@ -1,3 +1,5 @@
+import random
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -7,6 +9,7 @@ import folium
 import plotly.express as px
 from sklearn.calibration import LabelEncoder
 import matplotlib.dates as mdates
+import branca.colormap as cm
 # Pour éviter d'avoir les messages warning
 import warnings
 warnings.filterwarnings('ignore')
@@ -167,21 +170,6 @@ def go_bar_meteo(df):
                       )
     return fig
 
-def sns_scatter_meteo(df):
-    df3 = df[df["nom_compteur"] == "Totem 73 boulevard de Sébastopol S-N"]
-    df2 = df3[df3['fait_jour'] == 1][['comptage_horaire', 'temperature_2m', 'wind_speed', 'precipitation']].dropna()
-    df2 = df2[df2['comptage_horaire'] >= 500]
-
-    fig = plt.figure(figsize=(20, 10))
-    #scatter
-    sns.scatterplot(data=df2, x='temperature_2m', y='wind_speed',  hue='comptage_horaire', size='comptage_horaire', sizes=(50, 200),
-                    palette='coolwarm', style='precipitation', markers=['o', 's', 'D'], alpha=0.8)
-    plt.title("Nombre de passages de vélos selon la météo")
-    plt.xlabel("Température (°C)")
-    plt.ylabel("Vitesse du vent (km/h)")
-    plt.legend()
-    return fig
-
 def sns_scatter_vacances(df):
 
     fig = plt.figure(figsize=(6, 6))
@@ -262,21 +250,18 @@ def journalyCount(df):
 def averageCountByHour(df):
     plt.figure(figsize=(10, 6))
     sns.lineplot(x="heure", y="comptage_horaire", data = df)
-    plt.xlabel("Comptage horaire")
     return plt
 
 
 def countByHourAndNeutralise(df):
     plt.figure(figsize=(10, 6))
     sns.lineplot(x="heure", y="comptage_horaire", hue="neutralise", data=df)
-    plt.xlabel("Comptage horaire")
     return plt
 
 
 def averageCountByWeek(df):
     plt.figure(figsize=(10, 6))
     sns.lineplot(x="heure", y="comptage_horaire", hue="weekend", data=df)
-    plt.xlabel("Comptage horaire")
     return plt
 
 # Distribution de la variable comptage_horaire et identification des outliers :
@@ -290,34 +275,75 @@ def boxplot(column):
 def generate_folium_map(df,map_filename):
 
     df_work = df.copy()
-    df_work['weekend'] = df_work['num_jour_semaine'].apply(lambda x: 1 if x >= 5 else 0)
-    df_comptage_bornes = df_work.groupby(["latitude","longitude"])["comptage_horaire"].sum().reset_index()
-       
-    # Supprimer les lignes avec valeurs manquantes
-    df_comptage_bornes = df_comptage_bornes.dropna(subset=["latitude", "longitude", "comptage_horaire"])
+    df_comptage_bornes = df_work.groupby(['nom_compteur', 'latitude', 'longitude'])['comptage_horaire'].mean().reset_index()
 
     # Créer une carte centrée sur Paris
+     # Créer une carte centrée sur Paris
     m = folium.Map(location=[48.8566, 2.3522], zoom_start=12)
-
     # Ajouter des cercles proportionnels avec une taille plus petite
     for _, row in df_comptage_bornes.iterrows():
-        compteur = df_work.loc[(df_work["latitude"] == row["latitude"]) & (df_work["longitude"] == row["longitude"]), "nom_compteur"]
-        value = row["comptage_horaire"]
-        popup_text = f"{compteur.iloc[0]} : {value} "
-        #popup_text = f"Borne: {value}"
+        compteur = df_work.loc[(df_work['latitude'] == row['latitude']) & (df_work['longitude'] == row['longitude']), 'nom_compteur']
+        value = row['comptage_horaire']
+        popup_text = f"<b>{compteur.iloc[0]}</b> : {int(value)}"
+        # Ajouter un jitter aléatoire aux coordonnées de latitude et longitude
+        jitter_latitude = row['latitude'] + random.uniform(-0.0002, 0.0002)  # variation aléatoire
+        jitter_longitude = row['longitude'] + random.uniform(-0.0002, 0.0002)  # variation aléatoire
         folium.CircleMarker(
-            location=[row["latitude"], row["longitude"]],
-            radius=max(row["comptage_horaire"] / 100000, 2),  # Divise par un nombre plus grand pour éviter des cercles géants
-            color="blue",
+            location=[jitter_latitude, jitter_longitude],
+            radius=max(row['comptage_horaire'] / 8, 2),  # Divise par un nombre plus grand pour éviter des cercles géants
+            color='blue',
             fill=True,
-            fill_color="blue",
+            fill_color='blue',
             fill_opacity=0.5,
             popup=popup_text
         ).add_to(m)
-  
     # Sauvegarder la carte
     m.save(map_filename)
     return map_filename
+
+# cartographie predictio
+def generate_folium_map_prediction(df_enter,compteur_select, map_filename, date_select, heure_select):
+
+    #if compteur_select == 'All':
+    filtered_df = df_enter[(df_enter["date_heure_comptage"].dt.date == date_select) & (df_enter["heure"] == heure_select)]
+    #else:
+    #    filtered_df = df_enter[(df_enter["date_heure_comptage"].dt.date == date_select) &
+    #                             (df_enter["heure"] == heure_select) &
+    #                             (df_enter["nom_compteur"] == compteur_select)]        
+
+    m = folium.Map(location=[filtered_df["latitude"].mean(), filtered_df["longitude"].mean()],
+            zoom_start=11,control_scale=True)
+
+    colormap_blue = cm.LinearColormap(colors=["#66b3ff", "#3385ff", "#004080"], vmin=0, vmax=600)
+    colormap_blue.add_to(m)
+    
+    # Dégradé de rouge pour le compteur spécifique
+    colormap_red = cm.LinearColormap(colors=["#ff6666", "#e60000", "#990000"], vmin=0, vmax=600)
+    colormap_red.add_to(m)
+
+    for _, row in filtered_df.iterrows():
+        if row['nom_compteur'] == compteur_select:
+            color =colormap_red(row["predictions_comptage_horaire"])
+            zindex_value = 100
+        else:
+            color = colormap_blue(row["predictions_comptage_horaire"])
+            zindex_value = 1
+        folium.CircleMarker(
+                location=[row["latitude"], row["longitude"]],
+                radius=max(3, min(10, row["predictions_comptage_horaire"] / 50)),
+                color=color,
+                fill=True,
+                fill_color=color,
+                fill_opacity=0.6,
+                zindex=zindex_value,
+                popup=f"{row['nom_compteur']}<br>Prédiction: {row['predictions_comptage_horaire']}"
+                ).add_to(m)
+
+    m.save(map_filename)
+    return map_filename
+
+       
+
 
 
 def boxplotTemperature(df):
@@ -612,10 +638,10 @@ def filter_data_photo(period,df):
 
     # Tracer les 4 courbes
     plt.figure(figsize=(10, 6))
-    plt.plot(df_moyenne_partage.index, df_moyenne_partage, label="Piste partagé", color="blue", alpha=0.7)
+    plt.plot(df_moyenne_partage.index, df_moyenne_partage, label="Piste partagée", color="blue", alpha=0.7)
     plt.plot(df_moyenne_separe.index, df_moyenne_separe, label="Piste séparée", color="red", alpha=0.7)
     plt.plot(df_moyenne_1sens.index, df_moyenne_1sens, label="Piste à 1 sens", color="green", alpha=0.7)
-    plt.plot(df_moyenne_2sens.index, df_moyenne_2sens, label="Piste à deux sens", color="orange", alpha=0.7)
+    plt.plot(df_moyenne_2sens.index, df_moyenne_2sens, label="Piste à 2 sens", color="orange", alpha=0.7)
     
     # Ajouter des labels et une légende
     plt.xlabel("Heure de la journée", fontsize=12)
@@ -676,4 +702,34 @@ def courbePrediction3J(df3J, compteur):
     plt.ylabel("Comptage horaire / Prédiction", fontsize=12)
     plt.legend()
     plt.grid(True)
+    return plt
+
+def calculer_mae_relative(df_selected):
+    mae_absolute = np.mean(np.abs(df_selected["predictions_comptage_horaire"] - df_selected["Comptage horaire"]))
+    mae_relative = mae_absolute / np.mean(df_selected["Comptage horaire"])
+    return mae_relative
+
+def plot_graph(fichier, compteur, df_resultat,df_list):
+    df_selected = df_list[fichier]
+    df_selected = pd.merge(df_selected[["nom_compteur","date_heure_comptage","predictions_comptage_horaire"]], df_resultat, 
+                           left_on=["nom_compteur","date_heure_comptage"], right_on=["Nom du compteur","Date et heure de comptage"], how="left")
+    if compteur != "All":
+        df_selected = df_selected[df_selected["nom_compteur"] == compteur]
+    df_moyenne_semaine = df_selected.groupby("date_heure_comptage")[["predictions_comptage_horaire","Comptage horaire"]].mean().reset_index()
+
+    plt.figure(figsize=(25, 6))
+    plt.plot(df_moyenne_semaine["date_heure_comptage"], df_moyenne_semaine["Comptage horaire"], label="Comptage horaire", color="blue", alpha=0.7)
+    plt.plot(df_moyenne_semaine["date_heure_comptage"], df_moyenne_semaine["predictions_comptage_horaire"], label="Prédiction", color="red", alpha=0.7)
+    plt.title("Prédictions des 3 prochains jours", fontsize=14)
+    plt.xlabel("Date et heure de comptage", fontsize=12)
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%d/%m/%Y %Hh00'))
+    plt.ylabel("Comptage horaire / Prédiction", fontsize=12)
+    plt.xlim(df_moyenne_semaine["date_heure_comptage"].min(), df_moyenne_semaine["date_heure_comptage"].max())
+    mae_relative = calculer_mae_relative(df_selected)
+    plt.text(0.06,0.8, f"MAE relative: {mae_relative:.2f}", ha='right', va='top', fontsize=10,
+         transform=plt.gca().transAxes, bbox=dict(facecolor='white', alpha=0.7, boxstyle="round,pad=0.5"))
+    plt.legend(loc="upper left", fontsize=12)
+    plt.grid(True)
+    plt.tight_layout()
+
     return plt

@@ -4,6 +4,8 @@ import pandas as pd
 # Pour éviter d'avoir les messages warning
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
+
+from sklearn.metrics import mean_absolute_error, mean_squared_error
 from config import Config
 import requests
 import warnings
@@ -14,11 +16,12 @@ warnings.filterwarnings('ignore')
 def load_data(file_path, separator, numheader):
     return pd.read_csv(file_path, sep=separator, header=numheader)
 
-def create_data(df, file_path):
-    df.to_csv(file_path + 'dataframeFinal.csv')
 
-def create_data3J(df, extension):
-    csv = df.to_csv(extension+'_Save3J.csv')
+def create_data3J_csv(df):
+    current_time = datetime.now()
+    next_hour = (current_time + timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
+    nom_fichier = f"prediction_{next_hour.strftime('%Y-%m-%d_%Hh00')}"
+    df.to_csv(Config.FILE_PATH_PREDIC + nom_fichier +'.csv')
 
 
 def informationDF(df):
@@ -52,6 +55,12 @@ def removeJoblibFile():
             print(f"Fichier supprimé : {file}")
         except Exception as e:
             print(f"Erreur lors de la suppression de {file}: {e}")
+
+def findListCSV():
+    fichiers_csv = [f for f in os.listdir(Config.FILE_PATH_PREDIC) if f.endswith(".csv")]
+    df_list = {f: pd.read_csv(os.path.join(Config.FILE_PATH_PREDIC, f), parse_dates=["date_heure_comptage"]) for f in fichiers_csv}
+    return df_list
+
 
 def merge(df_cleaned,df_m,df_jv, df_p, df_ir):
 
@@ -226,3 +235,22 @@ def createDataframe(meteo, df_work, df_work_vac):
     full_df["weekend"] = full_df["num_jour_semaine"].apply(lambda x: 1 if x >= 5 else 0)
 
     return full_df
+
+
+def completeDataframe(df3J,compteur_select, date_select, heure_select):
+    if compteur_select == 'All':
+        filtered_df = df3J[(df3J["date_heure_comptage"].dt.date == date_select) &(df3J["heure"] == heure_select)]
+    else:
+        filtered_df = df3J[(df3J["date_heure_comptage"].dt.date == date_select) &(df3J["heure"] == heure_select) &(df3J["nom_compteur"] == compteur_select)]
+
+    mesures = ['Température (°C)','Précipitation (mm/h)','Vent (km/h)','Estimation Cycliste']
+    valeurs = [
+            filtered_df['temperature_2m'].mean(), 
+            filtered_df['precipitation_mm'].mean(), 
+            filtered_df['wind_speed'].mean(),
+            filtered_df['predictions_comptage_horaire'].mean().round() 
+        ]
+    table_df = pd.DataFrame({'Mesure': mesures, 'Valeur': valeurs})
+    table_df.set_index('Mesure', inplace=True)
+
+    return filtered_df, table_df
