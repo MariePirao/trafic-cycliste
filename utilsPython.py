@@ -17,13 +17,10 @@ def load_data(file_path, separator, numheader):
     return pd.read_csv(file_path, sep=separator, header=numheader)
 
 
-def create_data3J(df, extension):
+def create_data3J_csv(df):
     current_time = datetime.now()
     next_hour = (current_time + timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
     nom_fichier = f"prediction_{next_hour.strftime('%Y-%m-%d_%Hh00')}"
-    #chemin_csv = os.path.join(chemin_base, nom_fichier + ".csv")
-    #df_filtre.to_csv(chemin_csv, index=False)
-    #print(f"📂 DataFrame enregistré sous : {chemin_csv}")
     df.to_csv(Config.FILE_PATH_PREDIC + nom_fichier +'.csv')
 
 

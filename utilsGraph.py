@@ -170,21 +170,6 @@ def go_bar_meteo(df):
                       )
     return fig
 
-def sns_scatter_meteo(df):
-    df3 = df[df["nom_compteur"] == "Totem 73 boulevard de Sébastopol S-N"]
-    df2 = df3[df3['fait_jour'] == 1][['comptage_horaire', 'temperature_2m', 'wind_speed', 'precipitation']].dropna()
-    df2 = df2[df2['comptage_horaire'] >= 500]
-
-    fig = plt.figure(figsize=(20, 10))
-    #scatter
-    sns.scatterplot(data=df2, x='temperature_2m', y='wind_speed',  hue='comptage_horaire', size='comptage_horaire', sizes=(50, 200),
-                    palette='coolwarm', style='precipitation', markers=['o', 's', 'D'], alpha=0.8)
-    plt.title("Nombre de passages de vélos selon la météo")
-    plt.xlabel("Température (°C)")
-    plt.ylabel("Vitesse du vent (km/h)")
-    plt.legend()
-    return fig
-
 def sns_scatter_vacances(df):
 
     fig = plt.figure(figsize=(6, 6))
@@ -265,21 +250,18 @@ def journalyCount(df):
 def averageCountByHour(df):
     plt.figure(figsize=(10, 6))
     sns.lineplot(x="heure", y="comptage_horaire", data = df)
-    plt.xlabel("Comptage horaire")
     return plt
 
 
 def countByHourAndNeutralise(df):
     plt.figure(figsize=(10, 6))
     sns.lineplot(x="heure", y="comptage_horaire", hue="neutralise", data=df)
-    plt.xlabel("Comptage horaire")
     return plt
 
 
 def averageCountByWeek(df):
     plt.figure(figsize=(10, 6))
     sns.lineplot(x="heure", y="comptage_horaire", hue="weekend", data=df)
-    plt.xlabel("Comptage horaire")
     return plt
 
 # Distribution de la variable comptage_horaire et identification des outliers :
@@ -656,10 +638,10 @@ def filter_data_photo(period,df):
 
     # Tracer les 4 courbes
     plt.figure(figsize=(10, 6))
-    plt.plot(df_moyenne_partage.index, df_moyenne_partage, label="Piste partagé", color="blue", alpha=0.7)
+    plt.plot(df_moyenne_partage.index, df_moyenne_partage, label="Piste partagée", color="blue", alpha=0.7)
     plt.plot(df_moyenne_separe.index, df_moyenne_separe, label="Piste séparée", color="red", alpha=0.7)
     plt.plot(df_moyenne_1sens.index, df_moyenne_1sens, label="Piste à 1 sens", color="green", alpha=0.7)
-    plt.plot(df_moyenne_2sens.index, df_moyenne_2sens, label="Piste à deux sens", color="orange", alpha=0.7)
+    plt.plot(df_moyenne_2sens.index, df_moyenne_2sens, label="Piste à 2 sens", color="orange", alpha=0.7)
     
     # Ajouter des labels et une légende
     plt.xlabel("Heure de la journée", fontsize=12)

@@ -347,7 +347,7 @@ def predictionModel(classifier, modelProphetCompteur, compteur):
 
 '''FONCTION POUR PREDICTION A 3JOUR'''
 
-def prediction3JModel(classifier,df, df_vac, modelProphetCompteur, compteur):
+def prediction3JModel(df, df_vac):
 
     df_work = df.copy()
     df_work_vac = df_vac.copy()
@@ -374,7 +374,7 @@ def prediction3JModel(classifier,df, df_vac, modelProphetCompteur, compteur):
     df3J['precipitation_mm'] = pd.to_numeric(df3J['precipitation_mm'], errors='coerce')
     df3J['wind_speed'] = pd.to_numeric(df3J['wind_speed'], errors='coerce')
     
-    utils.create_data3J(df3J, "XGB")   
+    utils.create_data3J_csv(df3J)   
 
     return df3J
 
