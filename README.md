@@ -1,16 +1,15 @@
 # trafic-cycliste
-Premier projet de Data Analyst/Data scientist
+Projet de Data Analyst/Data scientist (Analayse Trafic cycliste sur Paris)
 
 PREREQUIS : 
-creation d'un repertoire Projets
-sous vscode ouvrir ce répertoire puis faire un git clone : git clone  (--> cela creera un répertoire trafic-cycliste)
+Creation d'un repertoire Projets en local
+Sous vscode ouvrir ce répertoire puis faire un git clone : git clone  (--> cela creera un répertoire trafic-cycliste dans votre répertoire Projets
 
-Dans votre répertoire aller dans Projets/trafic-cycliste
-Télécharge du drive le ficheir archive et 
+Dans votre répertoire local aller dans Projets/trafic-cycliste
+Télécharger du drive le fichier "Archive_Finale.zip" et 
 - deposer dans data/ les fichiers présents dans l'archive dans data (fichiers *.csv)
 - deposer dans prediction/ les fichiers présents dans l'archive dans prediction (fichiers prediction*.csv)
-- deposer à la raceine les fichiers présents dans l'archive dans la racine (fichiers .jobllib)
-
+- deposer à la racine les fichiers présents dans l'archive dans la racine (fichiers .jobllib)
 
 TEST DE L'APPLICATION:
-Tester l'application : Dans le terminal de VSCODE tapez : streamlit run homePage.py
+Pour lancer l'application , dDans le terminal de VSCODE tapez : streamlit run homePage.py

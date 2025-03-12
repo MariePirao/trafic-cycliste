@@ -56,7 +56,7 @@ class Config:
     période utilisée du 2024-12-29 01:00 au 2024-12-30 06:00.'''
     ABERRANTECORRECTION = ''''''
     
-    DFFINAL= '''Après nettoyage et ajout de nouvelles variables, notre dataframe contient à présent 29 variables pour un total de 900 222 entrées.'''
+    DFFINAL= '''Après nettoyage et ajout de nouvelles variables, notre dataframe contient à présent 30 variables pour un total de 900 222 entrées.'''
 
     CONCLUSION_REPARTITION = '''Nous observons que notre jeu de données contient quelques (5) valeurs pour l’année 2022;<br>
     nous supprimons ces entrées afin de n’avoir que des données sur 2024/2025'''
