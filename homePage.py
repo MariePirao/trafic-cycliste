@@ -119,14 +119,14 @@ if page == pages[0] : #0seconde
   st.markdown('<p style="margin-bottom: 0px;font-size:12px; font-style:italic;">Bootcamp Analytics Engineer JAN2025', unsafe_allow_html=True)
   st.markdown('<p style="font-size:12px; font-style:italic;">Aurélie Guilhem - Ingrid Plessis - Nicolas Couvez - Marie Pirao', unsafe_allow_html=True)
 
-  st.markdown(f'<p style="margin-bottom: 0px;">Source à exploiter : {Config.FILE}</p>', unsafe_allow_html=True)
+  st.markdown(f'<p style="margin-bottom: 0px;">🚲 Source à exploiter : {Config.FILE}</p>', unsafe_allow_html=True)
   st.markdown('<p style="font-size:12px; font-style:italic;">source : <a href="https://opendata.paris.fr/explore/dataset/comptage-velo-donnees-compteurs" target="_blank">https://opendata.paris.fr/explore/dataset/comptage-velo-donnees-compteurs</a></p>', unsafe_allow_html=True)
   
 
   if st.checkbox("Afficher les données externes", key='page1') : # sinon les chekbox de toute l'appli sont liées
     st.markdown(f'<p style="margin-left: 50px;margin-bottom: 0px;">🌤️ Données météorologiques :  {Config.FILE_METEO}</p>', unsafe_allow_html=True)
-    st.markdown(f'<p style="margin-left: 50px;font-size:12px; font-style:italic;">sources : <a href="https://www.data.gouv.fr/fr/organizations/meteo-france/" target="_blank">https://www.data.gouv.fr/fr/organizations/meteo-france/</a></p>', unsafe_allow_html=True)
-    st.markdown('<p style="margin-left: 50px;font-size:12px; font-style:italic;">         <a href="https://www.meteo-paris.com/meteo-8-jours/paris-75000" target="_blank">https://www.meteo-paris.com/meteo-8-jours/paris-75000</a></p>', unsafe_allow_html=True)
+    st.markdown(f'<p style="margin-left: 50px;margin-bottom: 0px;font-size:12px; font-style:italic;">sources : <a href="https://www.data.gouv.fr/fr/organizations/meteo-france/" target="_blank">https://www.data.gouv.fr/fr/organizations/meteo-france/</a></p>', unsafe_allow_html=True)
+    st.markdown('<p style="margin-left: 50px;font-size:12px; font-style:italic;"><a href="https://www.meteo-paris.com/meteo-8-jours/paris-75000" target="_blank">https://www.meteo-paris.com/meteo-8-jours/paris-75000</a></p>', unsafe_allow_html=True)
 
     st.markdown(f'<p style="margin-left: 50px;margin-bottom: 0px;">🏖️ Données vacances scolaires :  {Config.FILE_VAC}</p>', unsafe_allow_html=True)
     st.markdown('<p style="margin-left: 50px;font-size:12px; font-style:italic;">source : <a href="https://www.data.gouv.fr/fr/datasets/calendrier-scolaire/" target="_blank">https://www.data.gouv.fr/fr/datasets/calendrier-scolaire/</a></p>', unsafe_allow_html=True)
@@ -137,7 +137,7 @@ if page == pages[0] : #0seconde
     st.markdown(f'<p style="margin-left: 50px;margin-bottom: 0px;">📸 Données détail photo :  {Config.FILE_PHOTO}</p>', unsafe_allow_html=True)
     st.markdown('<p style="margin-left: 50px;font-size:12px; font-style:italic;">source : effectué manuellement', unsafe_allow_html=True)
         
-    st.markdown(f'<p style="margin-left: 50px;margin-bottom: 0px;">:🚧 Données détail travaux ou blocage des JO :  {Config.FILE_TRAVAUX}</p>', unsafe_allow_html=True)
+    st.markdown(f'<p style="margin-left: 50px;margin-bottom: 0px;">🚧 Données détail travaux ou blocage des JO :  {Config.FILE_TRAVAUX}</p>', unsafe_allow_html=True)
     st.markdown('<p style="margin-left: 50px;font-size:12px; font-style:italic;">source : effectué manuellement', unsafe_allow_html=True)
 
     
@@ -225,8 +225,9 @@ if page == pages[1] : #4 seconde
     #Analyse spécifique de certains compteurs présentant de grandes interation de compteurs à 0
     st.subheader("Itération de 10 comptages à 0 sur certains compteurs")
     #possibilité choix compteurs
-    Compteur = ['10 avenue de la Grande Armée SE-NO','106 avenue Denfert Rochereau NE-SO','135 avenue Daumesnil SE-NO','24 boulevard Jourdan E-O',
-                '33 avenue des Champs Elysées NO-SE','38 rue Turbigo','boulevard Richard Lenoir','Pont des Invalides',
+    Compteur = ['135 avenue Daumesnil SE-NO','boulevard Richard Lenoir','10 avenue de la Grande Armée SE-NO',
+                '106 avenue Denfert Rochereau NE-SO','24 boulevard Jourdan E-O',
+                '33 avenue des Champs Elysées NO-SE','38 rue Turbigo','Pont des Invalides',
                 "27 quai de la Tournelle","7 avenue de la Grande Armée NO-SE",
                 "Porte des Ternes", "Face au 48 quai de la marne",
                 "Totem 73 boulevard de Sébastopol"]
@@ -371,7 +372,7 @@ if page == pages[2] :
     st.markdown(Config.DATAVIZ14, unsafe_allow_html=True)
 
 
-#Page 4, les modélisation
+#Page 4, les modélisations
 if page == pages[3] : 
 
   st.subheader("Modélisation")
@@ -432,8 +433,8 @@ if page == pages[3] :
     #Cas du modèle reprophet 
     st.write("### Modèles temporelles")
     # l'entrainement des modèles se fait sur un nombres restreint de compteurs pour eviter la surcharge de la session
-    listCompteur2 = ["10 avenue de la Grande Armée SE-NO","16 avenue de la Porte des Ternes E-O","18 quai de l'Hôtel de Ville NO-SE",
-                  "147 avenue d'Italie S-N","27 boulevard Davout N-S"]
+    listCompteur2 = ["147 avenue d'Italie S-N","10 avenue de la Grande Armée SE-NO","16 avenue de la Porte des Ternes E-O","18 quai de l'Hôtel de Ville NO-SE",
+                  "27 boulevard Davout N-S"]
     
     #si le tableau contenant les modèles entrainés n'est déjà en session on le calcul et on le met en session
     if 'models' not in st.session_state:
@@ -476,13 +477,14 @@ if page == pages[4] :
     #Mise en forme et proposition de date pour le mois de février
     date_debut = datetime(2025, 2, 1,0,0)
     date_limite = datetime(2025, 2, 28, 0, 0).date()
+    date_start = datetime(2025, 2, 10, 0, 0).date()
 
     col1, col2 = st.columns(2)
     with col1:
       date_debut_choisie = st.date_input("Choisissez une date de début", min_value=date_debut, max_value=date_limite - timedelta(days=1),value=date_debut) 
       date_debut_choisie = datetime.combine(date_debut_choisie, datetime.min.time())
     with col2:
-      date_fin_choisie = st.date_input("Choisissez une date de fin", min_value=date_debut_choisie + timedelta(days=1), max_value=date_limite, value=date_limite)
+      date_fin_choisie = st.date_input("Choisissez une date de fin", min_value=date_debut_choisie + timedelta(days=1), max_value=date_limite, value=date_start)
       date_fin_choisie = datetime.combine(date_fin_choisie, datetime.min.time())
   
     #Mise en forme et proposition de modèles
@@ -494,8 +496,8 @@ if page == pages[4] :
     if modelChoisi != 'Prophet':
       listCompteur2 = ['All'] + utils.searchUnique(df_merged_cleaned_final, 'nom_compteur').tolist()
     else:
-      listCompteur2 = ["10 avenue de la Grande Armée SE-NO","16 avenue de la Porte des Ternes E-O","18 quai de l'Hôtel de Ville NO-SE",
-                    "147 avenue d'Italie S-N","27 boulevard Davout N-S"]
+      listCompteur2 = ["147 avenue d'Italie S-N","10 avenue de la Grande Armée SE-NO","16 avenue de la Porte des Ternes E-O","18 quai de l'Hôtel de Ville NO-SE",
+                    "27 boulevard Davout N-S"]
     compteur = st.selectbox("Choisissez le nom du compteur", listCompteur2)
     st.write(f"Le compteur choisi est : {compteur}")
 
@@ -510,15 +512,15 @@ if page == pages[4] :
       infoModelCompteur = models[compteur]
 
     # Bouton de lancement de la prédiction
-    if st.button("Lancer la prédiction"):
-        # Appeler la méthode de prédiction selon le modèe et le compteurs-
-        df_février = modelisation.predictionModel(modelChoisi, infoModelCompteur, compteur)
-        # Afficher le graphe de la prédiction vs réalité sur les dates et le compteurs choisi
-        st.subheader("Comparaison entre prédiction et réalité du comptage cycliste en Février 2025")
-        fig = graph.courbePrediction(df_février, compteur, date_debut_choisie,date_fin_choisie)
-        st.pyplot(fig)
-        if modelChoisi == 'XGBRegressor' :
-              st.markdown(Config.PREDICTION3J_3, unsafe_allow_html=True)
+    #if st.button("Lancer la prédiction"):
+    # Appeler la méthode de prédiction selon le modèe et le compteurs-
+    df_février = modelisation.predictionModel(modelChoisi, infoModelCompteur, compteur)
+    # Afficher le graphe de la prédiction vs réalité sur les dates et le compteurs choisi
+    st.subheader("Comparaison entre prédiction et réalité du comptage cycliste en Février 2025")
+    fig = graph.courbePrediction(df_février, compteur, date_debut_choisie,date_fin_choisie)
+    st.pyplot(fig)
+    if modelChoisi == 'XGBRegressor' :
+        st.markdown(Config.PREDICTION3J_3, unsafe_allow_html=True)
 
   with onglet11 :
     st.subheader("Prédiction à 3J")
@@ -529,7 +531,7 @@ if page == pages[4] :
     compteur = st.selectbox("Choisissez le nom du compteur", listCompteur2, key='onglet11_1')
     st.write(f"Le compteur choisi est : {compteur}")
 
-    # lancement de la prédiction dans le futur sur 3J
+    # lancement de la prédiction dans le futur sur 3J sur tous les compteurs
     df3J = modelisation.prediction3JModel(df_merged_cleaned_final,df_vjf_cleaned)
     st.markdown("Prédictions des 3 prochains jours sur l'ensemble des compteurs")
 
@@ -576,7 +578,7 @@ if page == pages[4] :
     st.write(f"Le compteur choisi est : {compteur}")
 
     #creation d'un dataframe contenant tous les fichiers présents dans le répertoire prédiction 
-    df_list = utils.findListCSV()
+    df_list = dict(sorted(utils.findListCSV().items()))
 
     #creation du dataframe a partir du dernier csv tlépchargé sur le site
     df_realité = utils.load_data(Config.FILE_PATH +"lastDataComptage.csv", ",", 0)
@@ -586,9 +588,9 @@ if page == pages[4] :
     fichier = st.selectbox("Sélection fichier:", list(df_list.keys()))
     st.write(f"Le fichier choisi est : {fichier}")
     #affichage du graph pour ce fichier
-    if st.button('Afficher le graphique'):
-      fig = graph.plot_graph(fichier, compteur, df_realité,df_list)
-      st.pyplot(fig)
+    #if st.button('Afficher le graphique'):
+    fig = graph.plot_graph(fichier, compteur, df_realité,df_list)
+    st.pyplot(fig)
 
     st.subheader("Suivi de la performance du modèle")
     st.markdown(Config.SUIVI_2, unsafe_allow_html=True)

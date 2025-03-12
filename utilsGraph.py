@@ -1,4 +1,5 @@
 import random
+import streamlit as st
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -40,6 +41,7 @@ def plot_heatmap(df):
 
     return fig  
 
+@st.cache_data
 def heatmap_isna(df):
     """Affiche une heatmap de isna()."""
     fig = plt.figure()
