@@ -315,7 +315,7 @@ if page == pages[2] :
     components.html(html_code, height=600)
     st.markdown(Config.DATAVIZ4, unsafe_allow_html=True)
 
-    st.subheader("Top10 et Flop10 des Bornes selon le passages horaires moyen")
+    st.subheader("Top10 et Flop10 des bornes selon les passages horaires moyens")
     fig,fig1 = graph.top10Flop10(df_merged_cleaned_final)
     st.pyplot(fig)
     st.pyplot(fig1)
