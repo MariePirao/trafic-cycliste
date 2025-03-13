@@ -386,10 +386,6 @@ if page == pages[3] :
     st.pyplot(fig)
     st.markdown(Config.MODELISATION_1, unsafe_allow_html=True)
 
-    st.subheader("Analyse des corrélations linaires")
-    st.image(Config.TABLEAU_CORR_LINE, width=1000) 
-    st.markdown(Config.MODELISATION_2, unsafe_allow_html=True)
-
     st.subheader("Analyse de la saisonnalité des comptages de vélos")
     fig = graph.plot_moyenne_par_semaine(df_merged_cleaned_final)
     st.pyplot(fig)
@@ -428,6 +424,14 @@ if page == pages[3] :
     elif display == 'Nuage de point de prédiction':
       fig = graph.pix_prediction(clf, X_test,y_test)
       st.pyplot(fig)
+
+    #Image permettant de visualiser directement la comparaison des modèles
+    st.markdown("<br><br><br><br><br>", unsafe_allow_html=True)
+    st.subheader("Comparaison des modèles")
+    st.image(Config.COMPARAISON_MODELES, width=1000) 
+    st.markdown(Config.MODELISATION_2, unsafe_allow_html=True)
+
+
 
   with onglet33:
     #Cas du modèle reprophet 

@@ -162,10 +162,10 @@ class Config:
 
     MODELISATION_1='''Nous observons une corrélation moyenne entre la variable cible et les données telles que l’ heure, fait_jour et latitude. <br>
     Il existe également une anticorrélation avec les variables num_jour_semaine et weekend.'''
-    TABLEAU_CORR_LINE = "Tableau_correlationLinaire.png"
-    MODELISATION_2='''L’analyse des corrélations linéaires montre que la variable cible est peu influencée par les variables présentes, 
-    à l’exception des quelques variables temporelles telles que heure et fait_jour.<br> 
-    Cela peut suggérer une approche de modélisation non linéaire et donc la présence d’interactions complexes entre les variables, car il n’est pas à exclure qu’une relation plus complexe existe entre les données.
+    COMPARAISON_MODELES= "comparaison_modèles_Regressor.png"
+    MODELISATION_2='''Le XGBRegressor et le StackingRegressor montrent les meilleures performances en termes de score R² et de MAE, avec des scores très proches.<br> 
+    En termes de stabilité, les trois modèles présentent des écarts-types faibles, mais le RandomForestRegressor, bien qu'un peu plus stable, a des erreurs plus élevées. <br> 
+    Globalement, le XGBRegressor semble offrir la meilleure combinaison de précision et de stabilité, avec des résultats cohérents à travers les itérations de validation croisée.
     '''
     MODELISATION_3='''Pour le choix des variables nous étions partis sur la totalité des données qui, pour nous, pouvaient avoir un impact sur la prédiction, 
     en nous inspirant du diagramme de corrélation.<br> 
