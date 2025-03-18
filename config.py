@@ -1,4 +1,5 @@
 class Config:
+    
     FILE_PATH = "data/"
     FILE_PATH_PREDIC = "prediction/"
     FILE = "comptage-velo-donnees-compteurs.csv"

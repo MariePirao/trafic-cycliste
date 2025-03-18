@@ -516,14 +516,14 @@ if page == pages[4] :
       infoModelCompteur = models[compteur]
 
     # Bouton de lancement de la prédiction
-    #if st.button("Lancer la prédiction"):
+    if st.button("Lancer la prédiction"):
     # Appeler la méthode de prédiction selon le modèe et le compteurs-
-    df_février = modelisation.predictionModel(modelChoisi, infoModelCompteur, compteur)
+      df_février = modelisation.predictionModel(modelChoisi, infoModelCompteur, compteur)
     # Afficher le graphe de la prédiction vs réalité sur les dates et le compteurs choisi
-    st.subheader("Comparaison entre prédiction et réalité du comptage cycliste en Février 2025")
-    fig = graph.courbePrediction(df_février, compteur, date_debut_choisie,date_fin_choisie)
-    st.pyplot(fig)
-    if modelChoisi == 'XGBRegressor' :
+      st.subheader("Comparaison entre prédiction et réalité du comptage cycliste en Février 2025")
+      fig = graph.courbePrediction(df_février, compteur, date_debut_choisie,date_fin_choisie)
+      st.pyplot(fig)
+      if modelChoisi == 'XGBRegressor' :
         st.markdown(Config.PREDICTION3J_3, unsafe_allow_html=True)
 
   with onglet11 :

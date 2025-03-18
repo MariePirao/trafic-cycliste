@@ -145,7 +145,6 @@ def preprocess_cyclisme(df):
 
 '''FONCTION DE PREPROCESSING DU FICHIER METEO'''
 
-
 def preprocess_meteo(df):
 
     """Prétraitement des données : suppression des valeurs manquantes et sélection des colonnes numériques."""

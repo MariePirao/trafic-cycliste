@@ -14,7 +14,6 @@ from xgboost import XGBRegressor
 from sklearn.preprocessing import MinMaxScaler, OrdinalEncoder
 import utilsPython as utils 
 from joblib import dump, load
-# Pour éviter d'avoir les messages warning
 import warnings
 import os
 warnings.filterwarnings('ignore')
