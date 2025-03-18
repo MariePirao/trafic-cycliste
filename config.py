@@ -10,6 +10,8 @@ class Config:
     FILE_FEVRIER = "fevrier.csv"
     IMAGE = "image_Top.jpg"  
     EXEMPLE = "exemplePrediction3J.png"
+    AXE_AMELIORATION = "axes_d_amélioration.png"
+    CONCLUSION = "conclusion.png"
     URL_METEO = "https://www.meteo-paris.com/meteo-8-jours/paris-75000"
     HEADERS = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36'}
     PRESENTATION = '''<div style="text-align: justify;">Alors que le vélo a désormais surpassé la voiture dans la capitale et que la fréquentation des aménagements cyclables a bondi depuis la période Covid,
@@ -97,9 +99,9 @@ class Config:
 
     PREDICTION3J_3 = '''Concernant le modèle XGBoost, nous obtenons les résultats suivants :<br>
         - MAE : 14,79<br>
-        - MAE relative : 19,2 %<br>
+        - MAPE: 19,2 %<br>
         - RMSE : 27,49<br>
-    Les valeurs des métriques MAE et MAE relative sont plutôt satisfaisantes et proches des résultats obtenus lors des tests sur le jeu de données initial. <br>
+    Les valeurs des métriques MAE et MAPE sont plutôt satisfaisantes et proches des résultats obtenus lors des tests sur le jeu de données initial. <br>
     En revanche, la RMSE est un peu plus élevée, ce qui indique des écarts plus importants à certains moments. <br>
     En analysant le graphique, on remarque que les erreurs surviennent principalement pendant les périodes de forte affluence.'''
 
