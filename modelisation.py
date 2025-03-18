@@ -14,7 +14,6 @@ from xgboost import XGBRegressor
 from sklearn.preprocessing import MinMaxScaler, OrdinalEncoder
 import utilsPython as utils 
 from joblib import dump, load
-# Pour éviter d'avoir les messages warning
 import warnings
 import os
 warnings.filterwarnings('ignore')
@@ -374,7 +373,7 @@ def prediction3JModel(df, df_vac):
 
     return df3J
 
-'''FONCTIONS DE CALCUL DE METRIQUE'''
+'''FONCTIONS DE CALCUL DE METRIQUE'''   
 
 def scores(clf, choice, X_train, X_test, y_train, y_test):
   if choice == 'score (R²)':
@@ -409,7 +408,7 @@ def calculMetriquePrediction(df_realité):
                 "MEAN PRED": "Non disponible",
                 "MAE": "Non disponible",
                 "RMSE": "Non disponible",
-                "MRE_+10": "Non disponible"
+                "MAPE_+10": "Non disponible"
             }
             resultats.append(resultat_fichier)
         else:
@@ -425,7 +424,7 @@ def calculMetriquePrediction(df_realité):
                 "MEAN PRED": mean_pred,
                 "MAE": mae,
                 "RMSE": rmse,
-                "MRE_+10": mre1}
+                "MAPE_+10": mre1}
             resultats.append(resultat_fichier)
     df_resultats = pd.DataFrame(resultats)
     df_resultats.set_index("Nom du fichier", inplace=True)

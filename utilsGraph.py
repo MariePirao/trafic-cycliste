@@ -11,7 +11,6 @@ import plotly.express as px
 from sklearn.calibration import LabelEncoder
 import matplotlib.dates as mdates
 import branca.colormap as cm
-# Pour éviter d'avoir les messages warning
 import warnings
 warnings.filterwarnings('ignore')
 

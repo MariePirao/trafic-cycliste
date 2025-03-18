@@ -1,7 +1,6 @@
 import glob
 import numpy as np
 import pandas as pd
-# Pour éviter d'avoir les messages warning
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 from config import Config

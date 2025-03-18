@@ -108,7 +108,7 @@ st.image(Config.IMAGE, width=400)
 #titre et sommaire
 st.title("Trafic cycliste à PARIS")
 st.sidebar.title("Sommaire")
-pages=["Présentation du sujet","Exploration", "DataVizualization", "Modélisation","Prédiction"]
+pages=["Présentation du sujet","Exploration", "DataVizualization", "Modélisation","Prédiction","Conclusion"]
 page=st.sidebar.radio("Aller vers", pages, key='menu_principal')
 
 #Page 1
@@ -470,8 +470,8 @@ if page == pages[3] :
 #Page 4 les prédictions futurs
 if page == pages[4] : 
 
-  titres_onglets4 = ['Prédiction VS réalité', 'Prédiction à 3 jours', 'Suivi du modèle']
-  onglet10, onglet11, onglet12= st.tabs(titres_onglets4)
+  titres_onglets4 = ['Prédiction VS réalité', 'Prédiction à 3 jours', 'Suivi du modèle', "Axes d'amélioration"]
+  onglet10, onglet11, onglet12, onglet13= st.tabs(titres_onglets4)
 
   with onglet10 :
 
@@ -492,7 +492,7 @@ if page == pages[4] :
       date_fin_choisie = datetime.combine(date_fin_choisie, datetime.min.time())
   
     #Mise en forme et proposition de modèles
-    modèles = ['XGBRegressor','StackingRegressor','Random Forest Regressor', 'Prophet']
+    modèles = ['Random Forest Regressor','XGBRegressor','StackingRegressor','Random Forest Regressor', 'Prophet']
     modelChoisi = st.selectbox('Choix du modèle', modèles)
     st.write('Le modèle choisi est :', modelChoisi)
 
@@ -516,14 +516,14 @@ if page == pages[4] :
       infoModelCompteur = models[compteur]
 
     # Bouton de lancement de la prédiction
-    #if st.button("Lancer la prédiction"):
+    if st.button("Lancer la prédiction"):
     # Appeler la méthode de prédiction selon le modèe et le compteurs-
-    df_février = modelisation.predictionModel(modelChoisi, infoModelCompteur, compteur)
+      df_février = modelisation.predictionModel(modelChoisi, infoModelCompteur, compteur)
     # Afficher le graphe de la prédiction vs réalité sur les dates et le compteurs choisi
-    st.subheader("Comparaison entre prédiction et réalité du comptage cycliste en Février 2025")
-    fig = graph.courbePrediction(df_février, compteur, date_debut_choisie,date_fin_choisie)
-    st.pyplot(fig)
-    if modelChoisi == 'XGBRegressor' :
+      st.subheader("Comparaison entre prédiction et réalité du comptage cycliste en Février 2025")
+      fig = graph.courbePrediction(df_février, compteur, date_debut_choisie,date_fin_choisie)
+      st.pyplot(fig)
+      if modelChoisi == 'XGBRegressor' :
         st.markdown(Config.PREDICTION3J_3, unsafe_allow_html=True)
 
   with onglet11 :
@@ -601,3 +601,10 @@ if page == pages[4] :
     #Tableau de suivi des performances selon tous les fichiers de prediction sauvegardés
     df_resultats = modelisation.calculMetriquePrediction(df_realité)
     st.dataframe(df_resultats)
+
+  with onglet13 :
+    st.image(Config.AXE_AMELIORATION, width=1000)
+
+if page == pages[5] : 
+    st.subheader("Conclusion")
+    st.image(Config.CONCLUSION, width=1000)
