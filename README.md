@@ -1,7 +1,7 @@
 # trafic-cycliste
-Projet de Data Analyst/Data scientist (Analayse Trafic cycliste sur Paris)
+Projet de Data Analyst/Data scientist (Analyse Trafic cycliste sur Paris)
 
-    Alors que le vélo a désormais surpassé la voiture dans la capitale et que la fréquentation des aménagements cyclables a bondi depuis la période Covid,
+    <br>Alors que le vélo a désormais surpassé la voiture dans la capitale et que la fréquentation des aménagements cyclables a bondi depuis la période Covid,
 la Ville de Paris poursuit ses aménagements avec la création de plus d’une vingtaine de nouvelles pistes en 2024.
 Ces constats ont pu être effectués grâce notamment au déploiement par la Ville de Paris de près de soixante-dix capteurs de vélos permanents depuis 2020,   
 qui collectent en temps réel le nombre de cyclistes passant par chaque site de comptage, à chaque heure de la journée. Ces données précises permettent ainsi de visualiser 
