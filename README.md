@@ -20,7 +20,7 @@ Avant de pouvoir exécuter l'application, assurez-vous d'avoir les éléments su
   - XGBoost
   - Matplotlib
   - Seaborn
-  - BeautifulSoup (pour le web scraping des données météo)
+  - BeautifulSoup
 
 ## Installation
 
@@ -31,18 +31,12 @@ Avant de pouvoir exécuter l'application, assurez-vous d'avoir les éléments su
    ```bash
    git clone https://github.com/MariePirao/trafic-cycliste.git
 
-2. **Recupération des fichiers nécessaire sur votre machine locale :**
-
-   Sur demande
-
-TEST DE L'APPLICATION:
-Pour lancer l'application , dDans le terminal de VSCODE tapez : streamlit run homePage.py
-
+2. **Recupération des fichiers nécessaire sur votre machine locale :**  Sur demande
 
 ## Lancer l'application
 Une fois l'installation terminée, vous pouvez démarrer l'application Streamlit pour visualiser les résultats de la prédiction :
 
-1. **Dans le terminal, naviguez dans le répertoire du projet. :**
+1. **Dans le terminal, naviguez dans le répertoire du projet.**
 
-1. **Lancez l'application Streamlit ::**  streamlit run homePage.py
+1. **Lancez l'application Streamlit :**  streamlit run homePage.py
 Cela ouvrira l'application dans votre navigateur, où vous pourrez voir les résultats du trafic cycliste prédit et interagir avec les visualisations.
