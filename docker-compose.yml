@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: traficcycliste
+    ports:
+      - "8501:8501"
+    volumes:
+      - data_volume:/usr/local/app/data
+    environment:
+      - STREAMLIT_HOME=/tmp
+    command: streamlit run homePage.py
+
+volumes:
+  data_volume:
