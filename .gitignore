@@ -1,5 +1,5 @@
-src/data/*
+src/data/*.csv
 src/__pycache__/
 src/save*
 src/model_*
-src/prediction/*
+src/prediction/*.csv
