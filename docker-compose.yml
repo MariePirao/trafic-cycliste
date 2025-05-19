@@ -9,10 +9,6 @@ services:
     ports:
       - "8501:8501"
     volumes:
-      - data_volume:/usr/local/app/data
-    environment:
-      - STREAMLIT_HOME=/tmp
+      - /home/aejan25/trafic-cycliste-data/data:/usr/local/app/data
+      - /home/aejan25/trafic-cycliste-data/prediction:/usr/local/app/prediction
     command: streamlit run homePage.py
-
-volumes:
-  data_volume:
