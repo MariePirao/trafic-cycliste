@@ -30,7 +30,9 @@ L’objectif final est d’anticiper la fréquentation des pistes cyclables et d
 
 ## Lancez le conteneur et l'application
 
+    Cela ouvrira l'application dans votre navigateur, où vous pourrez voir les résultats du trafic cycliste prédits et interagir avec les visualisations.
+
    ```bash
    docker run -p 8501:8501 trafic-cycliste
 
-   Cela ouvrira l'application dans votre navigateur, où vous pourrez voir les résultats du trafic cycliste prédits et interagir avec les visualisations.
+  
