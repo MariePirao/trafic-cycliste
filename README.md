@@ -37,5 +37,3 @@ L’objectif final est d’anticiper la fréquentation des pistes cyclables et d
 
    ```bash
    docker run -p 8501:8501 trafic-cycliste
-
-  
