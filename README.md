@@ -28,11 +28,12 @@ L’objectif final est d’anticiper la fréquentation des pistes cyclables et d
    Vous pouvez les obtenir sur demande, puis les placer dans le bon répertoire (ex. src/data/ ou src/prediction selon la structure prévue).
    Sans ces fichiers, l'application ne pourra pas fonctionner. 
 
-3. **Lancer le conteneur :** 
+4. **Lancer le conteneur :** 
 
     Cela ouvrira l'application dans votre navigateur, où vous pourrez : 
       - interagir avec les différentes visualisation
       - voir les prédiction du trafic cycliste et faire un suivi de ces prédidictions
+
 
    ```bash
    docker run -p 8501:8501 trafic-cycliste
