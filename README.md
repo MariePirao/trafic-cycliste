@@ -7,22 +7,7 @@ Le vélo a désormais surpassé la voiture dans la capitale, et la fréquentatio
 
 L’objectif final est d’anticiper la fréquentation des pistes cyclables et d’aider à la gestion des infrastructures et des mobilités urbaines.
 
-## Prérequis
-
-Avant de pouvoir exécuter l'application, assurez-vous d'avoir les éléments suivants installés :
-
-- **Python 3.x** ou supérieur
-- **Streamlit** pour l'interface interactive (Installation via `pip install streamlit`)
-- **Bibliothèques Python nécessaires :**
-  - Pandas
-  - NumPy
-  - Scikit-learn
-  - XGBoost
-  - Matplotlib
-  - Seaborn
-  - BeautifulSoup
-
-## Installation
+## Installation via Docker et lancement de l'application
 
 1. **Clonez ce projet sur votre machine locale :**
 
@@ -30,13 +15,25 @@ Avant de pouvoir exécuter l'application, assurez-vous d'avoir les éléments su
 
    ```bash
    git clone https://github.com/MariePirao/trafic-cycliste.git
+   cd trafic-cycliste
 
-2. **Recupération des fichiers nécessaire sur votre machine locale :**  Sur demande
+2. **Construisez l’image Docker:**
 
-## Lancer l'application
-Une fois l'installation terminée, vous pouvez démarrer l'application Streamlit pour visualiser les résultats de la prédiction :
+   ```bash
+   docker build -t trafic-cycliste .
 
-1. **Dans le terminal, naviguez dans le répertoire du projet.**
+3. **Recupération des fichiers nécessaire sur votre machine locale :**  
 
-1. **Lancez l'application Streamlit :**  streamlit run homePage.py
-Cela ouvrira l'application dans votre navigateur, où vous pourrez voir les résultats du trafic cycliste prédit et interagir avec les visualisations.
+   👉 Important : certains fichiers de données (comptage cycliste, météo, etc.) ne sont pas inclus dans le dépôt.
+   Vous pouvez les obtenir sur demande, puis les placer dans le bon répertoire (ex. src/data/ ou src/prediction selon la structure prévue).
+   Sans ces fichiers, l'application ne pourra pas fonctionner. 
+
+4. **Lancer le conteneur :** 
+
+    Cela ouvrira l'application dans votre navigateur, où vous pourrez : 
+      - interagir avec les différentes visualisation
+      - voir les prédiction du trafic cycliste et faire un suivi de ces prédidictions
+
+
+   ```bash
+   docker run -p 8501:8501 trafic-cycliste

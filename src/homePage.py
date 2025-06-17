@@ -60,6 +60,8 @@ st.markdown(
     """, unsafe_allow_html=True
 )
 
+
+
 #on evite de refaire les diffférents dataframe s'ils sont déjà en session, sinon on les calcule et on les met en session
 if 'df_merged_cleaned_final' not in st.session_state: # 60 secondes
     df = utils.load_data(Config.FILE_PATH + Config.FILE, ";",0) 
