@@ -1,2 +1,18 @@
-*.html linguist-detectable=true
+# Forcer la détection des fichiers Python
 *.py linguist-detectable=true
+src/*.py linguist-detectable=true
+
+# Forcer la détection des fichiers HTML
+*.html linguist-detectable=true
+src/*.html linguist-detectable=true
+templates/*.html linguist-detectable=true
+
+# Ne pas inclure les images dans la détection du langage
+*.png linguist-documentation
+*.jpg linguist-documentation
+
+# Ignorer certains fichiers inutiles à l’analyse linguistique
+.DS_Store linguist-generated
+Dockerfile linguist-generated
+docker-compose.yml linguist-generated
+requirements.txt linguist-generated
