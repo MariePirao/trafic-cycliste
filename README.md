@@ -28,7 +28,7 @@ L’objectif final est d’anticiper la fréquentation des pistes cyclables et d
    📁 Données sources  → [Télécharger via google drive](https://drive.google.com/file/d/1io9GVvzC9bkwmpEznzBBSIogoiitdLVd/view?usp=drive_link)
    Sans ces fichiers, l'application ne pourra pas fonctionner. 
 
-4. **Lancer le conteneur :** 
+5. **Lancer le conteneur :** 
 
     Cela ouvrira l'application dans votre navigateur, où vous pourrez : 
       - interagir avec les différentes visualisation
