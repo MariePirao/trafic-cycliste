@@ -22,11 +22,11 @@ L’objectif final est d’anticiper la fréquentation des pistes cyclables et d
    ```bash
    docker build -t trafic-cycliste .
 
-3. **Récupération des fichiers nécessaires sur votre machine locale :**
+3. **📎 Récupération des fichiers nécessaires sur votre machine locale :**
 
-   👉 Important : certains fichiers de données (comptage cycliste, météo, etc.) ne sont pas inclus dans le dépôt.
-   ⚠️ Sans ces fichiers, l'application ne pourra pas fonctionner.
-   📁 Données sources → [Télécharger via Google Drive](https://drive.google.com/file/d/1io9GVvzC9bkwmpEznzBBSIogoiitdLVd/view?usp=drive_link)  
+   👉 Important : certains fichiers de données (comptage cycliste, météo, etc.) ne sont pas inclus dans le dépôt.  
+   ⚠️ Sans ces fichiers, l'application ne pourra pas fonctionner.  
+   📁 Données sources → [Télécharger via Google Drive](https://drive.google.com/file/d/1io9GVvzC9bkwmpEznzBBSIogoiitdLVd/view?usp=drive_link)
    
 5. **Lancer le conteneur :** 
 
