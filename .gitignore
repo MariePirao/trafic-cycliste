@@ -1,5 +1,8 @@
-data/*.csv
+data/*
 __pycache__/
 save*
 model_*
 prediction/*
+src_data.zip
+data/.DS_Store
+.DS_Store
