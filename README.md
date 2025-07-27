@@ -21,24 +21,27 @@ L’objectif final est d’anticiper la fréquentation des pistes cyclables et d
 
    ```bash
    docker build -t trafic-cycliste .
+   ```
+3. **Récupération des fichiers nécessaires sur votre machine locale:**
 
-3. **Récupération des fichiers nécessaires sur votre machine locale :**
+  **Important** : certains fichiers de données (comptage cycliste, météo, etc.) ne sont pas inclus dans le dépôt.  
+  Sans ces fichiers, l'application ne pourra pas fonctionner.  
 
-   👉 Important : certains fichiers de données (comptage cycliste, météo, etc.) ne sont pas inclus dans le dépôt.  
-   ⚠Sans ces fichiers, l'application ne pourra pas fonctionner.  
-   Données sources → [Télécharger via Google Drive](https://drive.google.com/file/d/1io9GVvzC9bkwmpEznzBBSIogoiitdLVd/view?usp=drive_link)
-   Copier le zip dans le répertoire trafic-cycliste et dezipper le telquel
+  **Données sources** → [Télécharger via Google Drive](https://drive.google.com/file/d/1io9GVvzC9bkwmpEznzBBSIogoiitdLVd/view?usp=drive_link)  
+  Copier le fichier `.zip` dans le répertoire `trafic-cycliste` et le **dézipper tel quel** (ne pas déplacer les fichiers).
    
-4. **Lancer le conteneur :** 
+4. **Lancer le conteneur Docker:** 
 
-    Cela ouvrira l'application dans votre navigateur, où vous pourrez : 
-      - interagir avec les différentes visualisation
-      - voir les prédiction du trafic cycliste et faire un suivi de ces prédidictions
+    Cela ouvrira l'application dans votre navigateur, où vous pourrez :  
+   - interagir avec les différentes visualisations  
+   - voir les prédictions du trafic cycliste  
+   - suivre l'évolution des prédictions par borne et par heure
 
    ```bash
    docker-compose up -d
-
+   ```
 5. **Accéder à l'application avec un navigateur:** 
 
-    Sur votre navigateur entré l'adresse : http://localhost:8501/
-    L'application met quelques minutes pour vous rendre la main
+   Sur votre navigateur, entrez l’adresse suivante : http://localhost:8501
+
+   L'application peut prendre quelques minutes avant d'être pleinement accessible.
