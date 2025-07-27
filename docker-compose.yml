@@ -9,6 +9,6 @@ services:
     ports:
       - "8501:8501"
     volumes:
-      - /home/aejan25/trafic-cycliste-data/data:/usr/local/app/data
-      - /home/aejan25/trafic-cycliste-data/prediction:/usr/local/app/prediction
+      - ./files/data:/usr/local/app/data
+      - ./files/prediction:/usr/local/app/prediction
     command: streamlit run homePage.py
