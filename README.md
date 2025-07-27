@@ -27,6 +27,7 @@ L’objectif final est d’anticiper la fréquentation des pistes cyclables et d
    👉 Important : certains fichiers de données (comptage cycliste, météo, etc.) ne sont pas inclus dans le dépôt.  
    ⚠Sans ces fichiers, l'application ne pourra pas fonctionner.  
    Données sources → [Télécharger via Google Drive](https://drive.google.com/file/d/1io9GVvzC9bkwmpEznzBBSIogoiitdLVd/view?usp=drive_link)
+   Copier le zip dans le répertoire trafic-cycliste et dezipper le telquel
    
 5. **Lancer le conteneur :** 
 
@@ -34,6 +35,10 @@ L’objectif final est d’anticiper la fréquentation des pistes cyclables et d
       - interagir avec les différentes visualisation
       - voir les prédiction du trafic cycliste et faire un suivi de ces prédidictions
 
-
    ```bash
-   docker run -p 8501:8501 trafic-cycliste
+   docker-compose up -d
+
+6. **Accéder à l'application avec un navigateur:** 
+
+    Sur votre navigateur entré l'adresse : http://localhost:8501/
+    L'application met quelques minutes pour vous rendre la main
