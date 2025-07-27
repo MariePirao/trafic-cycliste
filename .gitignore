@@ -1,7 +1,7 @@
-src/data/*.csv
+src/data/
 src/save*
 src/model_*
-src/prediction/*.csv
+src/prediction/
 src/__pycache__/
 __pycache__/
 *.zip
