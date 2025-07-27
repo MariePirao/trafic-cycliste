@@ -3,3 +3,6 @@ src/__pycache__/
 src/save*
 src/model_*
 src/prediction/*.csv
+src_data.zip
+__pycache__/
+
